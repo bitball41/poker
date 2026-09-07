@@ -14,19 +14,6 @@ export interface BotGameOptions {
   heroSeat?: number;
 }
 
-/** Re-roll display names + persona styles on bot seats; keep stacks/playerIds. */
-function applyBotRoll(g: GameState, heroSeat: number, seed: number): GameState {
-  const botSeats = g.seats.filter((s) => s.isBot && s.seatIndex !== heroSeat && s.playerId);
-  const rolled = rollBotSeats(botSeats.length, seed);
-  let idx = 0;
-  const seats = g.seats.map((s) => {
-    if (!s.isBot || s.seatIndex === heroSeat || !s.playerId) return s;
-    const r = rolled[idx++];
-    return { ...s, name: r.name, botPersona: r.personaId };
-  });
-  return { ...g, seats };
-}
-
 export function useBotGame(opts: BotGameOptions) {
   const heroSeat = opts.heroSeat ?? 0;
   const [state, setState] = useState<GameState | null>(null);
@@ -56,6 +43,8 @@ export function useBotGame(opts: BotGameOptions) {
       stack: opts.buyIn,
       isBot: false,
     });
+
+    // Roll opponents once per game. Their identities stay stable across hands.
     const bots = rollBotSeats(opts.seats - 1, Date.now() ^ (opts.seats * 997));
     let botIdx = 0;
     for (let i = 0; i < opts.seats; i++) {
@@ -91,32 +80,21 @@ export function useBotGame(opts: BotGameOptions) {
         if (!legal.length) break;
         setActingBot(seat.name);
         const decision = decideAction(s, seat.seatIndex, persona, legal);
-        const ms = thinkDelay(persona, decision);
-        await delay(ms);
+        await delay(thinkDelay(persona, decision));
         s = applyAction(s, decision.type, decision.amount);
         sync(s);
         setCoachLine(explainDecision(persona, decision, { actorName: seat.name }));
       }
       setActingBot(null);
 
-      // Auto next hand after short pause on complete
       if (s.street === 'complete') {
-        await delay(2200);
         const alive = s.seats.filter((x) => !x.sittingOut && x.stack > 0);
         if (alive.length >= 2 && alive.some((x) => x.seatIndex === heroSeat)) {
-          // Fresh names + styles each hand; keep stacks / seat ids
-          s = applyBotRoll(s, heroSeat, Date.now() ^ (s.handNo * 7919));
-          s = startHand(s);
-          sync(s);
-          setCoachLine('New hand dealt.');
-          lock.current = false;
-          setBusy(false);
-          if (s.currentSeat != null && s.seats[s.currentSeat]?.isBot) {
-            void runBots(s);
-          }
-          return;
+          setCoachLine('Hand over. Review it, then deal the next hand when ready.');
+        } else if (!alive.some((x) => x.seatIndex === heroSeat)) {
+          setCoachLine('You are out of chips. Restart to begin a new game.');
         } else {
-          setCoachLine('Hand over — not enough stacks to continue. Restart from setup.');
+          setCoachLine('Game over. Restart to begin a new game.');
         }
       }
     } finally {
@@ -143,6 +121,19 @@ export function useBotGame(opts: BotGameOptions) {
     [heroSeat, sync, runBots],
   );
 
+  const nextHand = useCallback(() => {
+    const s = stateRef.current;
+    if (!s || s.street !== 'complete' || lock.current) return;
+    const alive = s.seats.filter((x) => !x.sittingOut && x.stack > 0);
+    if (alive.length < 2 || !alive.some((x) => x.seatIndex === heroSeat)) return;
+    const next = startHand(s);
+    sync(next);
+    setCoachLine('New hand dealt.');
+    if (next.currentSeat != null && next.seats[next.currentSeat]?.isBot) {
+      void runBots(next);
+    }
+  }, [heroSeat, runBots, sync]);
+
   useEffect(() => {
     init();
   }, [init]);
@@ -162,6 +153,7 @@ export function useBotGame(opts: BotGameOptions) {
     busy,
     heroSeat,
     heroAct,
+    nextHand,
     restart: init,
   };
 }
