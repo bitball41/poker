@@ -4,7 +4,7 @@ import {
   createGame, sitPlayer, startHand, applyAction, getLegalActions,
 } from '../engine/game';
 import {
-  decideAction, legalizeBotDecision, thinkDelay, delay, explainDecision, rollBotSeats,
+  decideTournamentAction, legalizeBotDecision, thinkDelay, delay, explainDecision, rollBotSeats,
 } from '../bots';
 import { getGuestId, getGuestName } from '../lib/guest';
 
@@ -81,7 +81,7 @@ export function useBotGame(opts: BotGameOptions) {
         const legal = getLegalActions(s);
         if (!legal.length) break;
         setActingBot(seat.name);
-        const proposed = decideAction(s, seat.seatIndex, persona, legal);
+        const proposed = decideTournamentAction(s, seat.seatIndex, persona, legal);
         const decision = legalizeBotDecision(proposed, legal, seat.stack);
         await delay(thinkDelay(persona, decision));
         s = applyAction(s, decision.type, decision.amount);
