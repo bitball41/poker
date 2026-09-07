@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Generated poker ML data / checkpoints
+training/data/
+training/out/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
