@@ -52,25 +52,39 @@ export function HandLog({ state }: { state: GameState }) {
     | { kind: 'street'; key: string; label: string }
     | { kind: 'act'; key: string; text: string };
 
-  const rows: Row[] = [];
-  let lastStreet: string | undefined;
+  type StreetGroup = { street: Street; firstIndex: number; rows: Row[] };
+  const groups: StreetGroup[] = [];
+  let current: StreetGroup | null = null;
+
   state.history.forEach((a, i) => {
     const name = state.seats[a.seat]?.name ?? `Seat ${a.seat + 1}`;
     const text = lineFor(a, name, blinds);
     if (!text) return;
-    const st = a.street ?? 'preflop';
-    if (st !== lastStreet) {
-      lastStreet = st;
-      rows.push({
-        kind: 'street',
-        key: `st-${st}-${i}`,
-        label: STREET_LABEL[st as Street] ?? st,
-      });
+
+    const street = (a.street ?? 'preflop') as Street;
+    if (!current || current.street !== street) {
+      current = {
+        street,
+        firstIndex: i,
+        rows: [
+          {
+            kind: 'street',
+            key: `st-${street}-${i}`,
+            label: STREET_LABEL[street] ?? street,
+          },
+        ],
+      };
+      groups.push(current);
     }
-    rows.push({ kind: 'act', key: `a-${i}`, text });
+
+    current.rows.push({ kind: 'act', key: `a-${i}`, text });
   });
 
-  const display = [...rows].reverse();
+  // Newest street first, but NEVER reverse actions inside a street.
+  // Reversing the flat row array made valid poker action look like time travel.
+  const display = [...groups]
+    .sort((a, b) => b.firstIndex - a.firstIndex)
+    .flatMap((g) => g.rows);
 
   return (
     <aside className={styles.handLog} aria-label="Hand log">
