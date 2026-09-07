@@ -1,0 +1,74 @@
+.identityLine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.identityLine strong {
+  display: block;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.identityAvatar,
+.identityAvatarFallback {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.identityAvatar {
+  object-fit: cover;
+}
+
+.identityAvatarFallback {
+  display: grid;
+  place-items: center;
+  background: #181818;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.identityStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.identityStats span,
+.fixedStack {
+  border: 1px solid #171717;
+  border-radius: 999px;
+  background: #080808;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  padding: 0.38rem 0.62rem;
+}
+
+.identityStats b,
+.fixedStack b {
+  color: #fff;
+}
+
+.bankruptCard {
+  max-width: 420px;
+  margin: 5rem auto 0;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: stretch;
+  text-align: center;
+  background: #090909;
+  border: 1px solid #181818;
+  border-radius: 16px;
+}
+
+.bankruptTitle {
+  color: #fff;
+  font-weight: 750;
+  font-size: 1.15rem;
+}
