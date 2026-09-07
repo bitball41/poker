@@ -31,6 +31,8 @@ export interface SeatState {
   allIn: boolean;
   sittingOut: boolean;
   hasActed: boolean;
+  /** True when a short all-in increased the price but did not reopen raising for this seat. */
+  raiseLocked: boolean;
   /** Cleared each street — UI label over avatar */
   lastAction: { type: ActionType; amount?: number } | null;
 }
