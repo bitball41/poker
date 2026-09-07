@@ -5,5 +5,6 @@ export * from './position';
 export * from './ranges';
 export * from './personas';
 export * from './decision';
+export * from './legalize';
 export * from './timing';
 export * from './coach';
