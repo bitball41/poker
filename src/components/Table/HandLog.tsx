@@ -32,7 +32,6 @@ function renderHistory(state: GameState): RenderAction[] {
 
     switch (action.type) {
       case 'call':
-        // Engine history stores calls as the number of chips added.
         added = raw;
         streetTotal = before + raw;
         committed.set(action.seat, streetTotal);
@@ -40,8 +39,6 @@ function renderHistory(state: GameState): RenderAction[] {
       case 'bet':
       case 'raise':
       case 'all-in':
-        // Bets, raises and all-ins are recorded as the player's resulting
-        // committed amount on the current street.
         streetTotal = raw;
         added = Math.max(0, streetTotal - before);
         committed.set(action.seat, streetTotal);
@@ -97,11 +94,14 @@ export function HandLog({ state }: { state: GameState }) {
     bbSeat: state.bbSeat,
   };
 
-  type Row =
-    | { kind: 'street'; key: string; label: string }
-    | { kind: 'act'; key: string; text: string };
+  type ActionRow = { kind: 'act'; key: string; text: string };
+  type StreetGroup = {
+    street: Street;
+    firstIndex: number;
+    label: string;
+    actions: ActionRow[];
+  };
 
-  type StreetGroup = { street: Street; firstIndex: number; rows: Row[] };
   const groups: StreetGroup[] = [];
   let current: StreetGroup | null = null;
   const renderedHistory = renderHistory(state);
@@ -117,24 +117,23 @@ export function HandLog({ state }: { state: GameState }) {
       current = {
         street,
         firstIndex: i,
-        rows: [
-          {
-            kind: 'street',
-            key: `st-${street}-${i}`,
-            label: STREET_LABEL[street] ?? street,
-          },
-        ],
+        label: STREET_LABEL[street] ?? street,
+        actions: [],
       };
       groups.push(current);
     }
 
-    current.rows.push({ kind: 'act', key: `a-${i}`, text });
+    current.actions.push({ kind: 'act', key: `a-${i}`, text });
   });
 
-  // Newest street first, but NEVER reverse actions inside a street.
+  // Newest street first. Within each street, newest action first while keeping
+  // the street heading at the top of the group.
   const display = [...groups]
     .sort((a, b) => b.firstIndex - a.firstIndex)
-    .flatMap((g) => g.rows);
+    .flatMap((group) => [
+      { kind: 'street' as const, key: `st-${group.street}-${group.firstIndex}`, label: group.label },
+      ...[...group.actions].reverse(),
+    ]);
 
   return (
     <aside className={styles.handLog} aria-label="Hand log">
