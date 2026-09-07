@@ -32,10 +32,15 @@ export interface BotGameOptions {
 function rollBotStacks(count: number, seed: number): number[] {
   const rng = createRng(seed);
   const coreCount = Math.ceil(count / 2);
-  const groups = Array.from({ length: count }, (_, i) => i < coreCount ? 'core' : 'outlier');
+  const groups: Array<'core' | 'outlier'> = Array.from(
+    { length: count },
+    (_, i) => i < coreCount ? 'core' : 'outlier',
+  );
   for (let i = groups.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [groups[i], groups[j]] = [groups[j], groups[i]];
+    const tmp = groups[i];
+    groups[i] = groups[j];
+    groups[j] = tmp;
   }
   return groups.map((group) => {
     if (group === 'core') {
