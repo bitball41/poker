@@ -187,8 +187,9 @@
 
 /* —— Play (in-table) minimal chrome —— */
 .playPage {
-  max-width: 480px;
-  padding: 0.65rem 0.5rem 1.5rem;
+  max-width: 1280px;
+  width: 100%;
+  padding: 0.85rem 1.25rem 2rem;
   background: #000;
 }
 
