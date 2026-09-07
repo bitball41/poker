@@ -8,6 +8,7 @@ import { getLegalActions } from '../../engine/game';
 import { evaluateHand, CATEGORY_NAMES } from '../../bots/handStrength';
 import styles from './table.module.css';
 import fix from './tableFixes.module.css';
+import economy from './tableEconomy.module.css';
 
 const EMOJI_POOL = [
   '😺', '👽', '🐰', '🧑', '🦊', '🐼', '🐸', '🐵',
@@ -98,9 +99,9 @@ export function PokerTable({
         </div>
 
         {(pressure || rankLabel) && (
-          <div className={styles.tableMetaRow}>
+          <div className={economy.tableMetaRow}>
             {pressure && <span>Hand {state.handNo} · blinds {state.config.smallBlind}/{state.config.bigBlind} · target {pressure.targetChips} by hand {pressure.targetHand}</span>}
-            {rankLabel && <span className={styles.rankMeta}>{rankLabel}</span>}
+            {rankLabel && <span className={economy.rankMeta}>{rankLabel}</span>}
           </div>
         )}
 
@@ -182,7 +183,7 @@ export function PokerTable({
               })()}
               <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
               {heroAvatarUrl ? (
-                <img className={styles.heroPfp} src={heroAvatarUrl} alt="" />
+                <img className={economy.heroPfp} src={heroAvatarUrl} alt="" />
               ) : (
                 <div className={styles.heroEmoji}>{heroEmoji}</div>
               )}
