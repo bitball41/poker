@@ -10,9 +10,7 @@ export function getLegalActions(state: GameState): LegalAction[] {
   const toCall = Math.max(0, state.currentBet - seat.bet);
   const actions: LegalAction[] = [];
 
-  if (toCall > 0) {
-    actions.push({ type: 'fold' });
-  }
+  if (toCall > 0) actions.push({ type: 'fold' });
 
   if (toCall === 0) {
     actions.push({ type: 'check' });
@@ -23,12 +21,11 @@ export function getLegalActions(state: GameState): LegalAction[] {
     actions.push({ type: 'call', callAmount: toCall, min: toCall, max: toCall });
   }
 
-  // Bet / raise
-  const minRaiseTotal = state.currentBet + state.minRaise;
+  if (seat.raiseLocked) return actions;
 
   if (state.currentBet === 0) {
-    // Bet at least BB
-    const minBet = Math.min(seat.stack, state.config.bigBlind);
+    const baseMinBet = Math.max(1, state.config.bigBlind || 1);
+    const minBet = Math.min(seat.stack, baseMinBet);
     if (seat.stack > 0) {
       if (seat.stack <= minBet) {
         actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
@@ -37,22 +34,21 @@ export function getLegalActions(state: GameState): LegalAction[] {
         actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
       }
     }
-  } else {
-    // Raise: amount is total chips to put in this street (absolute bet level), or chips to add?
-    // We use: amount = total bet for this street (the new currentBet target contribution from this player... )
-    // Convention: amount = chips ADDED this action for bet/raise/call/all-in
-    const minAdd = Math.min(seat.stack, minRaiseTotal - seat.bet);
-    if (seat.stack > toCall) {
-      if (minAdd >= seat.stack) {
-        actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
-      } else {
-        actions.push({
-          type: 'raise',
-          min: minRaiseTotal - seat.bet, // chips to add to reach min raise
-          max: seat.stack,
-        });
-        actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
-      }
+    return actions;
+  }
+
+  const minRaiseTotal = state.currentBet + state.minRaise;
+  const minAdd = Math.min(seat.stack, minRaiseTotal - seat.bet);
+  if (seat.stack > toCall) {
+    if (minAdd >= seat.stack) {
+      actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
+    } else {
+      actions.push({
+        type: 'raise',
+        min: minRaiseTotal - seat.bet,
+        max: seat.stack,
+      });
+      actions.push({ type: 'all-in', min: seat.stack, max: seat.stack });
     }
   }
 
@@ -68,10 +64,8 @@ export function isActionLegal(
   const match = legal.find((a) => a.type === type);
   if (!match) return false;
   if (type === 'bet' || type === 'raise') {
-    if (amount == null) return false;
+    if (amount == null || !Number.isFinite(amount)) return false;
     return amount >= (match.min ?? 0) && amount <= (match.max ?? Infinity);
   }
-  if (type === 'all-in') return true;
-  if (type === 'call') return true;
   return true;
 }
