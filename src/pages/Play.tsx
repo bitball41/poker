@@ -4,6 +4,7 @@ import { useBotGame } from '../hooks/useBotGame';
 import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
 import { PokerTable } from '../components/Table/PokerTable';
 import styles from './pages.module.css';
+import economy from './economy.module.css';
 
 function finiteInt(raw: string | null, fallback: number, min: number, max: number): number {
   const n = Number(raw);
@@ -65,8 +66,8 @@ export function Play() {
       {identity.loading ? (
         <div className={styles.empty}>Loading Liminal account…</div>
       ) : !state ? (
-        <div className={styles.bankruptCard}>
-          <div className={styles.bankruptTitle}>You&apos;re out of chips.</div>
+        <div className={economy.bankruptCard}>
+          <div className={economy.bankruptTitle}>You&apos;re out of chips.</div>
           <div className={styles.muted}>Your original balance was 400. Refills are 200 fake chips.</div>
           <button type="button" className={styles.primary} disabled={!canRefill} onClick={refill}>
             Refill 200
