@@ -53,6 +53,60 @@
   color: #fff;
 }
 
+.authTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.authTab {
+  appearance: none;
+  border: 1px solid #171717;
+  border-radius: 9px;
+  background: #070707;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.58rem 0.7rem;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.authTabActive {
+  background: #f2f2f2;
+  border-color: #f2f2f2;
+  color: #050505;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.authError {
+  margin: 0;
+  border: 1px solid rgba(255, 90, 90, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 70, 70, 0.05);
+  color: rgba(255, 150, 150, 0.95);
+  padding: 0.55rem 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.accountActions {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.accountNote {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .bankruptCard {
   max-width: 420px;
   margin: 5rem auto 0;
