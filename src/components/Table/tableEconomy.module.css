@@ -1,0 +1,45 @@
+.tableMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.85rem;
+  margin: -0.5rem 0 0.15rem;
+  color: rgba(255, 255, 255, 0.36);
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankMeta {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.heroPfp {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.allInPreset {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  max-width: 112px !important;
+}
+
+@media (min-width: 901px) {
+  .heroPfp {
+    width: 52px;
+    height: 52px;
+  }
+
+  .tableMetaRow {
+    font-size: 0.72rem;
+  }
+}
