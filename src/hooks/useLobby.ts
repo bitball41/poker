@@ -91,7 +91,7 @@ function fresh(lastSeen: string, maxAgeMs = 60_000): boolean {
   return Number.isFinite(t) && Date.now() - t < maxAgeMs;
 }
 
-export function useLobby(code: string | undefined, isHostCreate?: CreateOptions) {
+export function useLobby(code: string = '', isHostCreate?: CreateOptions) {
   const [meta, setMeta] = useState<LobbyMeta | null>(null);
   const [seats, setSeats] = useState<LobbySeatMeta[]>([]);
   const [state, setState] = useState<GameState | null>(null);
@@ -242,7 +242,7 @@ export function useLobby(code: string | undefined, isHostCreate?: CreateOptions)
     }
 
     const nextMeta = mapLobby(lobbyResult.data);
-    const nextSeats = (seatsResult.data ?? []).map(mapSeat);
+    const nextSeats: LobbySeatMeta[] = (seatsResult.data ?? []).map(mapSeat);
     const nowHost = nextMeta.hostId === uid;
     const wasHost = isHostRef.current;
 

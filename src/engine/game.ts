@@ -423,7 +423,7 @@ export function applyAction(state: GameState, type: ActionType, amount?: number)
     seats: state.seats.map((s) => ({ ...s })),
     history: [...state.history],
   };
-  const seatIdx = next.currentSeat;
+  const seatIdx: number = state.currentSeat;
   const seat = next.seats[seatIdx];
   const toCall = Math.max(0, next.currentBet - seat.bet);
 
