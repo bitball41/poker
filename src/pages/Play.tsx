@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useBotGame } from '../hooks/useBotGame';
+import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
 import { PokerTable } from '../components/Table/PokerTable';
 import styles from './pages.module.css';
 
@@ -13,15 +14,30 @@ function finiteInt(raw: string | null, fallback: number, min: number, max: numbe
 export function Play() {
   const [params] = useSearchParams();
   const seats = finiteInt(params.get('seats'), 6, 2, 9);
-  const buyIn = finiteInt(params.get('buyIn'), 10000, 100, 1_000_000);
-  const smallBlind = finiteInt(params.get('sb'), 0, 0, buyIn);
-  const bigBlind = finiteInt(params.get('bb'), 0, 0, buyIn);
-  const { state, coachLine, actingBot, heroSeat, heroAct, nextHand, restart } = useBotGame({
+  const identity = useLiminalIdentity();
+  const {
+    state,
+    progress,
+    rank,
+    pressure,
+    coachLine,
+    actingBot,
+    heroSeat,
+    heroAct,
+    nextHand,
+    refill,
+    restart,
+  } = useBotGame({
     seats,
-    buyIn,
-    smallBlind,
-    bigBlind,
+    identityKey: identity.identityKey,
+    playerId: identity.playerId,
+    playerName: identity.displayName,
+    enabled: !identity.loading,
   });
+
+  const heroAlive = state?.seats[heroSeat]?.stack > 0;
+  const playersAlive = state?.seats.filter((s) => !s.sittingOut && s.stack > 0).length ?? 0;
+  const canRefill = !identity.loading && progress.chips <= 0 && (!state || !heroAlive);
 
   return (
     <motion.div
@@ -37,16 +53,25 @@ export function Play() {
         <button
           type="button"
           className={styles.restartTiny}
+          disabled={!state || state.street !== 'complete' || progress.chips <= 0}
           onClick={() => {
-            if (window.confirm('Restart this game? Current stacks and hand history will be lost.')) restart();
+            if (window.confirm('Start a fresh table with your current persistent chip balance?')) restart();
           }}
         >
-          Restart
+          New table
         </button>
       </nav>
 
-      {!state ? (
-        <div className={styles.empty}>Dealing…</div>
+      {identity.loading ? (
+        <div className={styles.empty}>Loading Liminal account…</div>
+      ) : !state ? (
+        <div className={styles.bankruptCard}>
+          <div className={styles.bankruptTitle}>You&apos;re out of chips.</div>
+          <div className={styles.muted}>Your original balance was 400. Refills are 200 fake chips.</div>
+          <button type="button" className={styles.primary} disabled={!canRefill} onClick={refill}>
+            Refill 200
+          </button>
+        </div>
       ) : (
         <>
           <PokerTable
@@ -54,12 +79,22 @@ export function Play() {
             heroSeat={heroSeat}
             coachLine={coachLine}
             actingBot={actingBot}
+            heroAvatarUrl={identity.pfp}
+            rankLabel={`${rank} · ${progress.rankPoints}`}
+            pressure={pressure}
             onAct={heroAct}
           />
-          {state.street === 'complete' && state.seats[heroSeat]?.stack > 0 && state.seats.filter((s) => !s.sittingOut && s.stack > 0).length >= 2 && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.75rem' }}>
+          {state.street === 'complete' && heroAlive && playersAlive >= 2 && (
+            <div className={styles.afterHandActions}>
               <button type="button" className={styles.primary} onClick={nextHand}>
                 Next hand
+              </button>
+            </div>
+          )}
+          {state.street === 'complete' && !heroAlive && (
+            <div className={styles.afterHandActions}>
+              <button type="button" className={styles.primary} disabled={!canRefill} onClick={refill}>
+                Refill 200
               </button>
             </div>
           )}
