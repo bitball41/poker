@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getGuestName, setGuestName } from '../lib/guest';
+import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
+import { loadProgress, rankName } from '../economy/progress';
 import styles from './pages.module.css';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -15,13 +17,16 @@ function makeLobbyCode(): string {
 
 export function Landing() {
   const nav = useNavigate();
+  const identity = useLiminalIdentity();
   const [code, setCode] = useState('');
   const [seats, setSeats] = useState(6);
-  const [buyIn, setBuyIn] = useState(10000);
   const [fillBots, setFillBots] = useState(true);
   const [name, setName] = useState(() => getGuestName());
+  const progress = useMemo(() => loadProgress(identity.identityKey), [identity.identityKey]);
 
-  const saveName = () => setGuestName(name);
+  const saveName = () => {
+    if (!identity.account) setGuestName(name);
+  };
 
   return (
     <div className={styles.page}>
@@ -36,7 +41,7 @@ export function Landing() {
           <span className={styles.poker}>Poker</span>
         </h1>
         <p className={styles.tagline}>
-          Practice No-Limit Hold&apos;em with smart bots or friends. Also Blackjack. Fake chips only.
+          No-Limit Hold&apos;em with persistent fake chips, ranked progress, smart bots, or friends. No real money.
         </p>
       </motion.header>
 
@@ -47,23 +52,53 @@ export function Landing() {
         transition={{ delay: 0.15 }}
       >
         <div className={styles.card}>
-          <h2>Your table identity</h2>
-          <p className={styles.muted}>Used in bot practice and private lobbies.</p>
-          <label className={styles.field}>
-            Display name
-            <input
-              className={styles.textInput}
-              value={name}
-              maxLength={20}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={saveName}
-            />
-          </label>
+          <h2>Your Liminal identity</h2>
+          {identity.loading ? (
+            <p className={styles.muted}>Checking Liminal Chat account…</p>
+          ) : identity.account ? (
+            <>
+              <div className={styles.identityLine}>
+                {identity.pfp ? (
+                  <img className={styles.identityAvatar} src={identity.pfp} alt="" />
+                ) : (
+                  <div className={styles.identityAvatarFallback}>{identity.displayName.slice(0, 1).toUpperCase()}</div>
+                )}
+                <div>
+                  <strong>{identity.displayName}</strong>
+                  <div className={styles.muted}>@{identity.account.username} · Liminal account</div>
+                </div>
+              </div>
+              <div className={styles.identityStats}>
+                <span><b>{progress.chips}</b> chips</span>
+                <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={styles.muted}>No Liminal Chat session found. Standalone guest mode still works.</p>
+              <label className={styles.field}>
+                Display name
+                <input
+                  className={styles.textInput}
+                  value={name}
+                  maxLength={20}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={saveName}
+                />
+              </label>
+              <div className={styles.identityStats}>
+                <span><b>{progress.chips}</b> chips</span>
+                <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className={styles.card}>
           <h2>Hold&apos;em vs Bots</h2>
-          <p className={styles.muted}>Primary practice mode. Works offline. Opponents stay the same for the whole game.</p>
+          <p className={styles.muted}>
+            First balance is 400 fake chips. Busting unlocks a 200-chip refill. Blinds rise every few hands and your stack persists.
+          </p>
           <label className={styles.field}>
             Table size
             <select value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
@@ -72,19 +107,13 @@ export function Landing() {
               ))}
             </select>
           </label>
-          <label className={styles.field}>
-            Buy-in (practice chips)
-            <select value={buyIn} onChange={(e) => setBuyIn(Number(e.target.value))}>
-              {[5000, 10000, 20000].map((n) => (
-                <option key={n} value={n}>{n.toLocaleString()}</option>
-              ))}
-            </select>
-          </label>
+          <div className={styles.fixedStack}>Your stack: <b>{progress.chips}</b> chips</div>
           <button
             className={styles.primary}
+            disabled={identity.loading}
             onClick={() => {
               saveName();
-              nav(`/play?seats=${seats}&buyIn=${buyIn}`);
+              nav(`/play?seats=${seats}`);
             }}
           >
             Sit &amp; Play
@@ -93,16 +122,17 @@ export function Landing() {
 
         <div className={styles.card}>
           <h2>Private Lobby</h2>
-          <p className={styles.muted}>Invite-code friends mode with a real waiting room and reconnect support.</p>
+          <p className={styles.muted}>Invite-code friends mode with a waiting room and reconnect support.</p>
           <label className={styles.checkboxField}>
             <input type="checkbox" checked={fillBots} onChange={(e) => setFillBots(e.target.checked)} />
             Fill empty seats with bots when the host starts
           </label>
           <button
             className={styles.secondary}
+            disabled={identity.loading}
             onClick={() => {
               saveName();
-              nav(`/lobby/${makeLobbyCode()}?host=1&seats=${seats}&buyIn=${buyIn}&bots=${fillBots ? 1 : 0}`);
+              nav(`/lobby/${makeLobbyCode()}?host=1&seats=${seats}&buyIn=400&bots=${fillBots ? 1 : 0}`);
             }}
           >
             Create Lobby
@@ -119,7 +149,7 @@ export function Landing() {
             />
             <button
               className={styles.secondary}
-              disabled={code.length !== 6}
+              disabled={code.length !== 6 || identity.loading}
               onClick={() => {
                 saveName();
                 nav(`/lobby/${code}`);
@@ -132,9 +162,7 @@ export function Landing() {
 
         <div className={styles.card}>
           <h2>Blackjack</h2>
-          <p className={styles.muted}>
-            Dealer bot (stand all 17s) + optional basic-strategy coach.
-          </p>
+          <p className={styles.muted}>Dealer bot + optional basic-strategy coach. Fake chips only.</p>
           <button className={styles.secondary} onClick={() => nav('/blackjack')}>
             Play Blackjack
           </button>
@@ -146,7 +174,7 @@ export function Landing() {
         <span>·</span>
         <Link to="/blackjack">Blackjack</Link>
         <span>·</span>
-        <span>No real money. Practice chips only.</span>
+        <span>No purchases, cash-outs, or real-world value.</span>
       </footer>
     </div>
   );
