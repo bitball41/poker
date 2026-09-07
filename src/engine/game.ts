@@ -43,7 +43,7 @@ export function createGame(config: GameConfig): GameState {
     bbSeat: 0,
     currentSeat: null,
     currentBet: 0,
-    minRaise: config.bigBlind,
+    minRaise: Math.max(1, config.bigBlind || 1),
     lastAggressor: null,
     winners: null,
     config,
@@ -129,7 +129,7 @@ export function startHand(state: GameState, seed?: number): GameState {
     history: [],
     street: 'preflop',
     currentBet: 0,
-    minRaise: state.config.bigBlind,
+    minRaise: Math.max(1, state.config.bigBlind || 1),
     lastAggressor: null,
     handNo: state.handNo + 1,
     started: true,
@@ -163,14 +163,20 @@ export function startHand(state: GameState, seed?: number): GameState {
   next.sbSeat = sb;
   next.bbSeat = bb;
 
-  postBlind(next, sb, next.config.smallBlind);
-  next.seats[sb].lastAction = { type: 'bet', amount: next.config.smallBlind };
-  next.history.push({ type: 'bet', amount: next.config.smallBlind, seat: sb, street: 'preflop' });
-  postBlind(next, bb, next.config.bigBlind);
-  next.seats[bb].lastAction = { type: 'bet', amount: next.config.bigBlind };
-  next.history.push({ type: 'bet', amount: next.config.bigBlind, seat: bb, street: 'preflop' });
+  const sbAmt = next.config.smallBlind;
+  const bbAmt = next.config.bigBlind;
+  if (sbAmt > 0) {
+    postBlind(next, sb, sbAmt);
+    next.seats[sb].lastAction = { type: 'bet', amount: sbAmt };
+    next.history.push({ type: 'bet', amount: sbAmt, seat: sb, street: 'preflop' });
+  }
+  if (bbAmt > 0) {
+    postBlind(next, bb, bbAmt);
+    next.seats[bb].lastAction = { type: 'bet', amount: bbAmt };
+    next.history.push({ type: 'bet', amount: bbAmt, seat: bb, street: 'preflop' });
+  }
   next.currentBet = Math.max(next.seats[sb].bet, next.seats[bb].bet);
-  next.minRaise = next.config.bigBlind;
+  next.minRaise = Math.max(1, bbAmt || 1);
   next.pot = totalPot(next.seats);
 
   // Deal hole cards
@@ -222,7 +228,7 @@ function advanceStreet(state: GameState): GameState {
     ...state,
     seats: state.seats.map((s) => ({ ...s, bet: 0, hasActed: false, lastAction: null })),
     currentBet: 0,
-    minRaise: state.config.bigBlind,
+    minRaise: Math.max(1, state.config.bigBlind || 1),
     lastAggressor: null,
   };
   next.pot = totalPot(next.seats);

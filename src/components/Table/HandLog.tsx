@@ -12,7 +12,7 @@ function lineFor(
   a: PlayerAction,
   name: string,
   blinds: { sb: number; bb: number; sbSeat: number; bbSeat: number },
-): string {
+): string | null {
   const amt = a.amount ?? 0;
   switch (a.type) {
     case 'fold':
@@ -23,10 +23,12 @@ function lineFor(
       return `${name} called ${amt}`;
     case 'bet':
       if (a.street === 'preflop' && a.seat === blinds.sbSeat && amt === blinds.sb) {
-        return `${name} posted SB ${amt}`;
+        if (amt <= 0) return null;
+        return `${name} posted small blind ${amt}`;
       }
       if (a.street === 'preflop' && a.seat === blinds.bbSeat && amt === blinds.bb) {
-        return `${name} posted BB ${amt}`;
+        if (amt <= 0) return null;
+        return `${name} posted big blind ${amt}`;
       }
       return `${name} bet ${amt}`;
     case 'raise':
@@ -53,6 +55,9 @@ export function HandLog({ state }: { state: GameState }) {
   const rows: Row[] = [];
   let lastStreet: string | undefined;
   state.history.forEach((a, i) => {
+    const name = state.seats[a.seat]?.name ?? `Seat ${a.seat + 1}`;
+    const text = lineFor(a, name, blinds);
+    if (!text) return;
     const st = a.street ?? 'preflop';
     if (st !== lastStreet) {
       lastStreet = st;
@@ -62,11 +67,9 @@ export function HandLog({ state }: { state: GameState }) {
         label: STREET_LABEL[st as Street] ?? st,
       });
     }
-    const name = state.seats[a.seat]?.name ?? `Seat ${a.seat + 1}`;
-    rows.push({ kind: 'act', key: `a-${i}`, text: lineFor(a, name, blinds) });
+    rows.push({ kind: 'act', key: `a-${i}`, text });
   });
 
-  // Newest on top
   const display = [...rows].reverse();
 
   return (

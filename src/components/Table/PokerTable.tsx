@@ -47,8 +47,8 @@ function actionCopy(
   if (last.type === 'all-in') return { label: amt ? `All-in ${amt}` : 'All-in', kind: 'aggressive' };
   if (last.type === 'raise') return { label: amt ? `Raise ${amt}` : 'Raise', kind: 'aggressive' };
   if (last.type === 'bet') {
-    if (opts.isSb && amt === opts.sb) return { label: 'SB', kind: 'blind' };
-    if (opts.isBb && amt === opts.bb) return { label: 'BB', kind: 'blind' };
+    if (opts.isSb && amt === opts.sb) return { label: 'Small blind', kind: 'blind' };
+    if (opts.isBb && amt === opts.bb) return { label: 'Big blind', kind: 'blind' };
     return { label: amt ? `Bet ${amt}` : 'Bet', kind: 'aggressive' };
   }
   return null;

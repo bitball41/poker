@@ -106,7 +106,7 @@ export function useLobby(code: string | undefined, isHostCreate?: {
     if (!code && !isHostCreate) return;
     const c = (code ?? randomCode()).toUpperCase();
     const cfg = isHostCreate ?? {
-      maxSeats: 6, buyIn: 10000, smallBlind: 50, bigBlind: 100, fillWithBots: true,
+      maxSeats: 6, buyIn: 10000, smallBlind: 0, bigBlind: 0, fillWithBots: true,
     };
 
     let cancelled = false;

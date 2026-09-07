@@ -8,11 +8,13 @@ export function Play() {
   const [params] = useSearchParams();
   const seats = Math.min(6, Math.max(2, Number(params.get('seats') ?? 6)));
   const buyIn = Number(params.get('buyIn') ?? 10000);
+  const smallBlind = Number(params.get('sb') ?? 0);
+  const bigBlind = Number(params.get('bb') ?? 0);
   const { state, coachLine, actingBot, heroSeat, heroAct, restart } = useBotGame({
     seats,
     buyIn,
-    smallBlind: Math.max(25, Math.round(buyIn / 200)),
-    bigBlind: Math.max(50, Math.round(buyIn / 100)),
+    smallBlind,
+    bigBlind,
   });
 
   return (
