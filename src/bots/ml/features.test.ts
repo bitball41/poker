@@ -32,6 +32,17 @@ describe('ML feature encoder', () => {
     expect(Array.from(encodeBotFeatures(mutated, actor))).toEqual(before);
   });
 
+  it('leaves unused seat slots zero on short-handed tables', () => {
+    let game = createGame({ smallBlind: 2, bigBlind: 4, maxSeats: 2, seed: 21 });
+    game = sitPlayer(game, 0, { playerId: 'a', name: 'A', stack: 400 });
+    game = sitPlayer(game, 1, { playerId: 'b', name: 'B', stack: 400 });
+    game = startHand(game, 23);
+    const features = encodeBotFeatures(game, game.currentSeat!);
+    // Seat-ring data starts at 124. On a heads-up table only the first two
+    // four-value seat blocks may be occupied; blocks 2..8 must remain empty.
+    expect(Array.from(features.slice(132))).toEqual(Array(28).fill(0));
+  });
+
   it('maps legal engine actions to the compact ML mask', () => {
     let game = createGame({ smallBlind: 2, bigBlind: 4, maxSeats: 2, seed: 5 });
     game = sitPlayer(game, 0, { playerId: 'a', name: 'A', stack: 400 });
