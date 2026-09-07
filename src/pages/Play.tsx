@@ -36,7 +36,7 @@ export function Play() {
     enabled: !identity.loading,
   });
 
-  const heroAlive = state?.seats[heroSeat]?.stack > 0;
+  const heroAlive = (state?.seats[heroSeat]?.stack ?? 0) > 0;
   const playersAlive = state?.seats.filter((s) => !s.sittingOut && s.stack > 0).length ?? 0;
   const canRefill = !identity.loading && progress.chips <= 0 && (!state || !heroAlive);
 
