@@ -10,7 +10,9 @@ export function getLegalActions(state: GameState): LegalAction[] {
   const toCall = Math.max(0, state.currentBet - seat.bet);
   const actions: LegalAction[] = [];
 
-  if (toCall > 0) actions.push({ type: 'fold' });
+  // Folding is always legal while a player still has cards. Mobile already exposes
+  // this as a gesture; desktop must get the same action explicitly.
+  actions.push({ type: 'fold' });
 
   if (toCall === 0) {
     actions.push({ type: 'check' });
@@ -64,8 +66,8 @@ export function isActionLegal(
   const match = legal.find((a) => a.type === type);
   if (!match) return false;
   if (type === 'bet' || type === 'raise') {
-    if (amount == null || !Number.isFinite(amount)) return false;
-    return amount >= (match.min ?? 0) && amount <= (match.max ?? Infinity);
+    if (amount == null || !Number.isFinite(amount) || amount <= 0) return false;
+    return amount >= Math.max(1, match.min ?? 1) && amount <= (match.max ?? Infinity);
   }
   return true;
 }
