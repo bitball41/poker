@@ -88,9 +88,12 @@ export function encodeBotFeatures(state: GameState, seatIndex: number): Float32A
   ];
   globals.forEach((value, i) => { out[108 + i] = value; });
 
-  // 124..159: nine seats, clockwise from the actor, four public features each.
+  // 124..159: up to nine seats, clockwise from the actor, four public features each.
+  // Short-handed tables leave the unused tail at zero rather than wrapping and
+  // duplicating the same players into fake seats.
   // Layout per seat: occupied, stack, current-street bet, status scalar.
   for (let offset = 0; offset < 9; offset++) {
+    if (offset >= state.seats.length) continue;
     const idx = (seatIndex + offset) % state.seats.length;
     const other = state.seats[idx];
     const base = 124 + offset * 4;
