@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LegalAction } from '../../types/poker';
 import styles from './table.module.css';
+import economy from './tableEconomy.module.css';
 
 interface Props {
   legal: LegalAction[];
@@ -114,7 +115,7 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
                 </>
               )}
               {canAllIn && (
-                <button type="button" className={`${styles.presetBtn} ${styles.allInPreset}`} disabled={disabled} onClick={() => onAct('all-in')}>
+                <button type="button" className={`${styles.presetBtn} ${economy.allInPreset}`} disabled={disabled} onClick={() => onAct('all-in')}>
                   All-in
                 </button>
               )}
