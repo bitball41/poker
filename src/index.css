@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap');
 
 :root {
   color-scheme: dark;
-  --bg: #050505;
-  --bg-elevated: #0a0a0a;
+  --bg: #000;
+  --bg-elevated: #1c1c1e;
   --text: #f2f2f2;
   --muted: rgba(255, 255, 255, 0.4);
   --border: #141414;
@@ -12,7 +12,7 @@
   line-height: 1.45;
   font-weight: 400;
   color: var(--text);
-  background: var(--bg);
+  background: #000;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -23,7 +23,7 @@
 html, body, #root {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
+  background: #000;
 }
 
 body {

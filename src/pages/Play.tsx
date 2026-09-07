@@ -17,19 +17,18 @@ export function Play() {
 
   return (
     <motion.div
-      className={styles.page}
+      className={`${styles.page} ${styles.playPage}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <nav className={styles.topNav}>
-        <Link to="/" className={styles.brand}>
-          <span className={styles.liminalSm}>Liminal</span> Poker
+      <nav className={styles.playNav}>
+        <Link to="/" className={styles.backChevron} aria-label="Back">
+          ‹
         </Link>
-        <div className={styles.topActions}>
-          <button type="button" className={styles.ghost} onClick={restart}>Restart</button>
-          <Link to="/" className={styles.ghostLink}>Home</Link>
-        </div>
+        <button type="button" className={styles.restartTiny} onClick={restart}>
+          Restart
+        </button>
       </nav>
 
       {!state ? (

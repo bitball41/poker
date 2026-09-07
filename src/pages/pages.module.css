@@ -184,3 +184,48 @@
   font-size: 0.85rem;
   color: #f2f2f2;
 }
+
+/* —— Play (in-table) minimal chrome —— */
+.playPage {
+  max-width: 480px;
+  padding: 0.65rem 0.5rem 1.5rem;
+  background: #000;
+}
+
+.playNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  padding: 0 0.25rem;
+  min-height: 36px;
+}
+
+.backChevron {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.85rem;
+  font-weight: 300;
+  line-height: 1;
+  padding: 0.15rem 0.4rem;
+  opacity: 0.9;
+}
+
+.backChevron:hover {
+  opacity: 1;
+}
+
+.restartTiny {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0.5rem;
+}
+
+.restartTiny:hover {
+  color: rgba(255, 255, 255, 0.55);
+}
