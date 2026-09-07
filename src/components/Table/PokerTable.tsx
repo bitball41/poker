@@ -43,13 +43,14 @@ function actionCopy(
   const amt = last.amount ?? 0;
   if (last.type === 'fold') return { label: 'Fold', kind: 'fold' };
   if (last.type === 'check') return { label: 'Check', kind: 'passive' };
-  if (last.type === 'call') return { label: amt ? `Call ${amt}` : 'Call', kind: 'aggressive' };
+  if (last.type === 'call') return { label: amt ? `Call ${amt}` : 'Call', kind: 'passive' };
   if (last.type === 'all-in') return { label: amt ? `All-in ${amt}` : 'All-in', kind: 'aggressive' };
   if (last.type === 'raise') return { label: amt ? `Raise ${amt}` : 'Raise', kind: 'aggressive' };
   if (last.type === 'bet') {
-    if (opts.isSb && amt === opts.sb) return { label: 'Small blind', kind: 'blind' };
-    if (opts.isBb && amt === opts.bb) return { label: 'Big blind', kind: 'blind' };
-    return { label: amt ? `Bet ${amt}` : 'Bet', kind: 'aggressive' };
+    if (opts.isSb && amt === opts.sb && amt > 0) return { label: 'Small blind', kind: 'blind' };
+    if (opts.isBb && amt === opts.bb && amt > 0) return { label: 'Big blind', kind: 'blind' };
+    if (amt <= 0) return null;
+    return { label: `Bet ${amt}`, kind: 'aggressive' };
   }
   return null;
 }
@@ -80,7 +81,7 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
   return (
     <div className={styles.playShell}>
       <div className={styles.tableWrap}>
-        <div className={styles.moneyStrip} aria-label="Money">
+        <div className={styles.moneyStrip} aria-label="Chips">
           <div className={styles.moneyCell}>
             <span className={styles.moneyLabel}>Pot</span>
             <span className={styles.moneyValue}>{state.pot}</span>
@@ -238,6 +239,7 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
               })()}
               <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
               <div className={styles.heroEmoji}>{heroEmoji}</div>
+              <div className={styles.heroName}>{hero.name || 'You'}</div>
               <motion.div
                 className={styles.heroStackBig}
                 key={hero.stack}
