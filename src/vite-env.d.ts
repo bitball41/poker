@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_LIMINAL_SUPABASE_URL?: string;
   readonly VITE_LIMINAL_SUPABASE_KEY?: string;
+  readonly VITE_LIMINAL_PARENT_ORIGIN?: string;
 }
 
 interface ImportMeta {
