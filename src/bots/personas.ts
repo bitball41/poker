@@ -105,16 +105,70 @@ export const PERSONAS: Record<string, Persona> = {
 
 export const PERSONA_LIST = Object.values(PERSONAS);
 
+/** Neutral first names for table display — shuffled independently from personas */
+export const DISPLAY_NAMES = [
+  'Alex', 'Jordan', 'Sam', 'Casey', 'Riley', 'Morgan', 'Quinn', 'Avery',
+  'Blake', 'Cameron', 'Drew', 'Emery', 'Finley', 'Harper', 'Jamie', 'Kai',
+  'Logan', 'Noah', 'Parker', 'Reese', 'Skyler', 'Taylor', 'Rowan', 'Sage',
+  'Elliot', 'Hayden', 'Jesse', 'Kendall', 'Lane', 'Marley', 'Nico', 'Owen',
+  'Peyton', 'Remy', 'Sidney', 'Toby', 'Val', 'Wren', 'Zion', 'Ash',
+];
+
 export function getPersona(id: string): Persona {
   return PERSONAS[id] ?? PERSONAS.mira;
 }
 
-/** Balanced mix for N bots */
+/** Balanced mix for N bots (legacy helper) */
 export function pickPersonas(count: number, seed = 1): Persona[] {
   const order = ['mira', 'jinx', 'harbor', 'rook', 'quill', 'fox', 'volt', 'sage'];
   const out: Persona[] = [];
   for (let i = 0; i < count; i++) {
     out.push(PERSONAS[order[(i + seed) % order.length]]);
+  }
+  return out;
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleInPlace<T>(arr: T[], rng: () => number): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+/**
+ * Shuffle persona styles and display names independently so table names
+ * never reveal which AI style is seated.
+ */
+export function rollBotSeats(
+  count: number,
+  seed: number,
+): { personaId: string; name: string }[] {
+  const rng = mulberry32(seed >>> 0);
+  const personaIds = shuffleInPlace(
+    PERSONA_LIST.map((p) => p.id),
+    rng,
+  );
+  const names = shuffleInPlace([...DISPLAY_NAMES], rng);
+  const out: { personaId: string; name: string }[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      personaId: personaIds[i % personaIds.length],
+      name: names[i % names.length],
+    });
   }
   return out;
 }

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { PERSONA_LIST } from '../bots/personas';
 import styles from './pages.module.css';
 
 export function Landing() {
@@ -23,8 +22,7 @@ export function Landing() {
           <span className={styles.poker}>Poker</span>
         </h1>
         <p className={styles.tagline}>
-          Practice No-Limit Hold&apos;em with bots that think in equity, pot odds, and position.
-          Also Blackjack. Fake chips only.
+          Practice No-Limit Hold&apos;em with smart bots. Also Blackjack. Fake chips only.
         </p>
       </motion.header>
 
@@ -36,7 +34,7 @@ export function Landing() {
       >
         <div className={styles.card}>
           <h2>Hold&apos;em vs Bots</h2>
-          <p className={styles.muted}>Primary mode. Works offline. Equity-aware personas.</p>
+          <p className={styles.muted}>Primary mode. Works offline. Fresh opponents every hand.</p>
           <label className={styles.field}>
             Table size
             <select value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
@@ -100,19 +98,6 @@ export function Landing() {
           </button>
         </div>
       </motion.section>
-
-      <section className={styles.personas}>
-        <h3>Hold&apos;em bot roster</h3>
-        <div className={styles.personaGrid}>
-          {PERSONA_LIST.map((p) => (
-            <div key={p.id} className={styles.personaCard} style={{ borderColor: p.avatarColor }}>
-              <div className={styles.personaName} style={{ color: p.avatarColor }}>{p.name}</div>
-              <div className={styles.personaBlurb}>{p.blurb}</div>
-              <div className={styles.personaStats}>VPIP {p.vpip} · PFR {p.pfr} · AF {p.aggressionFactor}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <footer className={styles.footer}>
         <Link to="/play">Hold&apos;em</Link>

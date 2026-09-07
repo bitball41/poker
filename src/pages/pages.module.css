@@ -3,6 +3,7 @@
   padding: 1.25rem 1rem 2.5rem;
   max-width: 1100px;
   margin: 0 auto;
+  background: #000;
 }
 
 .hero {
@@ -20,22 +21,22 @@
 .liminal {
   font-family: 'Pacifico', cursive;
   font-weight: 400;
-  color: #f5f5f5;
+  color: #fff;
 }
 
 .poker {
   font-family: 'Inter', system-ui, sans-serif;
   font-weight: 500;
-  color: #f5f5f5;
+  color: #f2f2f2;
 }
 
 .liminalSm {
   font-family: 'Pacifico', cursive;
-  color: #f5f5f5;
+  color: #fff;
 }
 
 .tagline {
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
   max-width: 420px;
   margin: 0 auto;
   line-height: 1.5;
@@ -50,8 +51,8 @@
 }
 
 .card {
-  background: #111;
-  border: 1px solid #222;
+  background: #0a0a0a;
+  border: 1px solid #141414;
   border-radius: 14px;
   padding: 1.25rem;
   display: flex;
@@ -63,22 +64,23 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 600;
+  color: #fff;
 }
 
-.muted { color: #888; font-size: 0.85rem; margin: 0; }
+.muted { color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; margin: 0; }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .field select, .joinRow input {
-  background: #0a0a0a;
-  border: 1px solid #333;
-  color: #f5f5f5;
+  background: #050505;
+  border: 1px solid #141414;
+  color: #f2f2f2;
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
   font-size: 0.95rem;
@@ -91,22 +93,22 @@
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  border: 1px solid #333;
+  border: 1px solid #141414;
 }
 
 .primary {
-  background: #f5f5f5;
-  color: #0a0a0a;
-  border-color: #f5f5f5;
+  background: #f2f2f2;
+  color: #050505;
+  border-color: #f2f2f2;
 }
 
 .secondary {
-  background: #161616;
-  color: #f5f5f5;
+  background: #0a0a0a;
+  color: #f2f2f2;
 }
 
 .primary:hover, .secondary:hover:not(:disabled) { filter: brightness(1.08); }
-.secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.secondary:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .joinRow {
   display: flex;
@@ -120,42 +122,16 @@
   text-align: center;
 }
 
-.personas h3 {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
-  font-weight: 500;
-  margin: 0 0 0.75rem;
-}
-
-.personaGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0.6rem;
-}
-
-.personaCard {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 10px;
-  padding: 0.75rem;
-}
-
-.personaName { font-weight: 600; font-size: 0.95rem; }
-.personaBlurb { font-size: 0.75rem; color: #888; margin: 0.25rem 0; line-height: 1.35; }
-.personaStats { font-size: 0.68rem; color: #666; }
-
 .footer {
   margin-top: 2.5rem;
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 0.8rem;
 }
 
-.footer a { color: #aaa; }
+.footer a { color: rgba(255, 255, 255, 0.55); }
 
 .topNav {
   display: flex;
@@ -165,7 +141,7 @@
 }
 
 .brand {
-  color: #f5f5f5;
+  color: #f2f2f2;
   text-decoration: none;
   font-size: 1.1rem;
 }
@@ -174,8 +150,8 @@
 
 .ghost, .ghostLink {
   background: transparent;
-  border: 1px solid #333;
-  color: #ccc;
+  border: 1px solid #141414;
+  color: rgba(255, 255, 255, 0.55);
   border-radius: 8px;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
@@ -185,14 +161,14 @@
 
 .empty {
   text-align: center;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
   padding: 4rem 1rem;
 }
 
 .banner {
-  background: #151515;
-  border: 1px solid #333;
-  color: #aaa;
+  background: #0a0a0a;
+  border: 1px solid #141414;
+  color: rgba(255, 255, 255, 0.5);
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
   font-size: 0.8rem;
@@ -202,9 +178,9 @@
 .codeBadge {
   font-family: ui-monospace, monospace;
   letter-spacing: 0.12em;
-  border: 1px solid #333;
+  border: 1px solid #141414;
   padding: 0.35rem 0.6rem;
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #f5f5f5;
+  color: #f2f2f2;
 }

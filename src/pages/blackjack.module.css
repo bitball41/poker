@@ -8,11 +8,12 @@
   font-weight: 500;
   font-size: 1.5rem;
   margin: 0 0 0.35rem;
+  color: #fff;
 }
 
 .table {
-  background: #111;
-  border: 1px solid #222;
+  background: #0a0a0a;
+  border: 1px solid #141414;
   border-radius: 16px;
   padding: 1.5rem 1rem;
   max-width: 560px;
@@ -31,7 +32,7 @@
 
 .label {
   font-size: 0.75rem;
-  color: #888;
+  color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -44,28 +45,28 @@
 
 .message {
   text-align: center;
-  color: #f5f5f5;
+  color: #f2f2f2;
   font-size: 0.95rem;
   padding: 0.5rem;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
+  border-top: 1px solid #141414;
+  border-bottom: 1px solid #141414;
 }
 
 .hint {
   max-width: 560px;
   margin: 0 auto 0.75rem;
-  background: #151515;
-  border: 1px solid #333;
+  background: #0a0a0a;
+  border: 1px solid #141414;
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
   font-size: 0.85rem;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
 }
 
 .bank {
   text-align: center;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 0.85rem;
   margin-bottom: 0.75rem;
 }
@@ -80,9 +81,9 @@
 
 .betInput {
   width: 100px;
-  background: #0a0a0a;
-  border: 1px solid #333;
-  color: #f5f5f5;
+  background: #050505;
+  border: 1px solid #141414;
+  color: #f2f2f2;
   border-radius: 8px;
   padding: 0.65rem 0.7rem;
   font-size: 1rem;
@@ -93,5 +94,5 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
 }

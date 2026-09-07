@@ -1,31 +1,54 @@
 import type { BotDecision } from '../types/poker';
-import { getPersona } from './personas';
 
-/** Short beginner-friendly explanation of a bot action */
-export function explainDecision(
-  personaId: string,
-  decision: BotDecision,
-  extras?: { equity?: number; potOdds?: number; handName?: string },
-): string {
-  const p = getPersona(personaId);
-  const parts: string[] = [`${p.name}:`];
-
+/** Soften decision text so style labels never leak to the player */
+function softReason(decision: BotDecision): string {
   if (decision.reason) {
-    parts.push(decision.reason);
-  } else {
-    parts.push(`${decision.type}${decision.amount != null ? ` ${decision.amount}` : ''}`);
+    const r = decision.reason
+      .replace(/\s*\(eq[^)]*\)/gi, '')
+      .replace(/\s*\(equity[^)]*\)/gi, '')
+      .replace(/Eq\s+[\d.]+%\s*<\s*price\s+[\d.]+%/gi, 'price looked steep')
+      .replace(/Fold weak.*/i, 'folded')
+      .trim();
+    if (r.length > 0 && r.length < 80) return r;
   }
+  const amount = decision.amount != null ? ` ${decision.amount}` : '';
+  switch (decision.type) {
+    case 'fold':
+      return 'folded';
+    case 'check':
+      return 'checked';
+    case 'call':
+      return `called${amount}`;
+    case 'bet':
+      return `bet${amount}`;
+    case 'raise':
+      return `raised to${amount}`;
+    case 'all-in':
+      return 'went all-in';
+    default:
+      return `${decision.type}${amount}`;
+  }
+}
 
-  if (extras?.equity != null && extras?.potOdds != null) {
-    parts.push(
-      `(equity ~${(extras.equity * 100).toFixed(0)}% vs need ${(extras.potOdds * 100).toFixed(0)}%)`,
-    );
-  }
-  if (extras?.handName) {
-    parts.push(`[${extras.handName}]`);
-  }
-
-  return parts.join(' ');
+/**
+ * Short beginner-friendly explanation of a bot action.
+ * Never include persona id, style labels (TAG/nit/etc.), or internal names.
+ */
+export function explainDecision(
+  _personaId: string,
+  decision: BotDecision,
+  extras?: {
+    equity?: number;
+    potOdds?: number;
+    handName?: string;
+    /** Table display name only — never a persona id */
+    actorName?: string;
+  },
+): string {
+  const who = extras?.actorName?.trim();
+  const line = softReason(decision);
+  if (who) return `${who} ${line}.`;
+  return line.charAt(0).toUpperCase() + line.slice(1) + '.';
 }
 
 export function tipForBeginner(street: string): string {
