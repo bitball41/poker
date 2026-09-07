@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&display=swap');
+
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --bg-elevated: #111;
+  --text: #f5f5f5;
+  --muted: #888;
+  --border: #222;
+  --accent: #e8e8e8;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  min-width: 320px;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+a { color: inherit; }
+
+::selection {
+  background: #333;
+  color: #fff;
+}

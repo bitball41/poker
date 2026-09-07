@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liminal Poker</title>
+  <meta name="description" content="Liminal Poker — practice NL Hold'em vs smart bots. Fake chips only." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="icon" type="image/svg+xml" href="https://cdn.jsdelivr.net/gh/bitball41/poker@main/docs/favicon.svg" />
+  <script>
+    (function () {
+      var CDN = 'https://cdn.jsdelivr.net/gh/bitball41/poker@main/docs/';
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = CDN + 'assets/index.css';
+      document.head.appendChild(link);
+      var s = document.createElement('script');
+      s.type = 'module';
+      s.crossOrigin = 'anonymous';
+      s.src = CDN + 'assets/app.js';
+      document.head.appendChild(s);
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <noscript>Liminal Poker needs JavaScript.</noscript>
+</body>
+</html>

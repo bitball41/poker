@@ -1,0 +1,210 @@
+.page {
+  min-height: 100vh;
+  padding: 1.25rem 1rem 2.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.hero {
+  text-align: center;
+  padding: 2.5rem 0 1.5rem;
+}
+
+.wordmark {
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 400;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.liminal {
+  font-family: 'Pacifico', cursive;
+  font-weight: 400;
+  color: #f5f5f5;
+}
+
+.poker {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  color: #f5f5f5;
+}
+
+.liminalSm {
+  font-family: 'Pacifico', cursive;
+  color: #f5f5f5;
+}
+
+.tagline {
+  color: #888;
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2.5rem;
+}
+
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.muted { color: #888; font-size: 0.85rem; margin: 0; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.field select, .joinRow input {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  color: #f5f5f5;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+}
+
+.primary, .secondary {
+  appearance: none;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: 1px solid #333;
+}
+
+.primary {
+  background: #f5f5f5;
+  color: #0a0a0a;
+  border-color: #f5f5f5;
+}
+
+.secondary {
+  background: #161616;
+  color: #f5f5f5;
+}
+
+.primary:hover, .secondary:hover:not(:disabled) { filter: brightness(1.08); }
+.secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.joinRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.joinRow input {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-align: center;
+}
+
+.personas h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-weight: 500;
+  margin: 0 0 0.75rem;
+}
+
+.personaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+
+.personaCard {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.personaName { font-weight: 600; font-size: 0.95rem; }
+.personaBlurb { font-size: 0.75rem; color: #888; margin: 0.25rem 0; line-height: 1.35; }
+.personaStats { font-size: 0.68rem; color: #666; }
+
+.footer {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.footer a { color: #aaa; }
+
+.topNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.brand {
+  color: #f5f5f5;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.topActions { display: flex; gap: 0.75rem; align-items: center; }
+
+.ghost, .ghostLink {
+  background: transparent;
+  border: 1px solid #333;
+  color: #ccc;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 4rem 1rem;
+}
+
+.banner {
+  background: #151515;
+  border: 1px solid #333;
+  color: #aaa;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.codeBadge {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  border: 1px solid #333;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #f5f5f5;
+}

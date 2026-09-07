@@ -1,0 +1,15 @@
+const fs=require("fs");
+const L=[];
+L.push("# Liminal Poker");
+L.push("");
+L.push("Practice NL Hold em + Blackjack. Practice chips only.");
+L.push("## Game modes");
+L.push("1. NL Hold em primary /play /lobby");
+L.push("2. Blackjack mode2 /blackjack");
+L.push("## Quick start");
+L.push("run package install then vite");
+L.push("## Bots: Mira Rook Jinx Harbor Volt Quill Sage Fox");
+L.push("## Blackjack at /blackjack");
+L.push("## Apply supabase/migrations/001_poker_schema.sql");
+fs.writeFileSync("README.md", L.join("\n")+"\n");
+console.log("done");
