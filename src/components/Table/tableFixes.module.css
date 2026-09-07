@@ -1,0 +1,55 @@
+.heroZone {
+  justify-content: center;
+  width: min(100%, 560px);
+  margin: auto auto 0;
+  gap: 1rem;
+}
+
+.heroCards {
+  flex: 0 0 auto;
+  min-width: 150px;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.heroTile {
+  flex: 0 0 auto;
+}
+
+.heroName {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.1;
+}
+
+@media (min-width: 901px) {
+  .heroZone {
+    width: min(100%, 620px);
+    gap: 1.25rem;
+  }
+
+  .heroCards {
+    min-width: 190px;
+  }
+
+  .heroName {
+    max-width: 130px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .heroZone {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .heroCards {
+    min-width: 120px;
+  }
+}
