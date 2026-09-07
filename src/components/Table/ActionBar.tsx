@@ -15,10 +15,12 @@ interface Props {
 export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
   const raise = legal.find((a) => a.type === 'raise' || a.type === 'bet');
   const call = legal.find((a) => a.type === 'call');
+  const allIn = legal.find((a) => a.type === 'all-in');
   const canFold = legal.some((a) => a.type === 'fold');
   const canCheck = legal.some((a) => a.type === 'check');
-  const canAllIn = legal.some((a) => a.type === 'all-in');
-  const hasSizingPanel = Boolean(raise || canAllIn);
+  const canAllIn = Boolean(allIn);
+  const allInIsForcedCall = canAllIn && allIn?.callAmount != null && !raise;
+  const hasSizingPanel = Boolean(raise || (canAllIn && !allInIsForcedCall));
 
   const min = raise?.min ?? Math.max(1, bb || 1);
   const max = raise?.max ?? min;
@@ -35,6 +37,12 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
 
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   const betLabel = raise?.type === 'bet' ? 'Bet' : 'Raise';
+
+  const submitSizedAction = () => {
+    if (!raise) return;
+    onAct(raise.type, clamp(raiseAmt));
+    setPanelOpen(false);
+  };
 
   return (
     <motion.div
@@ -58,21 +66,31 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
             Call {call.callAmount}
           </button>
         )}
-        {raise && (
-          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct(raise.type, raiseAmt)}>
-            {betLabel} {raiseAmt}
+        {allInIsForcedCall && allIn && (
+          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct('all-in')}>
+            Call {allIn.callAmount} · All-in
           </button>
         )}
-        {hasSizingPanel && (
+        {raise && (
           <button
             type="button"
-            className={styles.iconBtn}
+            className={styles.actBtn}
             disabled={disabled}
-            aria-label="Open bet sizing"
             aria-expanded={panelOpen}
             onClick={() => setPanelOpen((v) => !v)}
           >
-            ↑
+            {betLabel}
+          </button>
+        )}
+        {!raise && hasSizingPanel && (
+          <button
+            type="button"
+            className={styles.actBtn}
+            disabled={disabled}
+            aria-expanded={panelOpen}
+            onClick={() => setPanelOpen((v) => !v)}
+          >
+            More
           </button>
         )}
       </div>
@@ -87,7 +105,7 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
           >
             {raise && (
               <div className={styles.sliderRow}>
-                <span className={styles.sliderHint}>↑ {raiseAmt}</span>
+                <span className={styles.sliderHint}>{raiseAmt}</span>
                 <input
                   className={styles.raiseSlider}
                   type="range"
@@ -96,15 +114,15 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
                   value={clamp(raiseAmt)}
                   onChange={(e) => setRaiseAmt(Number(e.target.value))}
                   disabled={disabled}
-                  aria-label="Bet or raise amount"
+                  aria-label={`${betLabel} amount`}
                 />
               </div>
             )}
             <div className={styles.raisePresets}>
               {raise && (
                 <>
-                  <button type="button" className={styles.presetBtn} disabled={disabled} onClick={() => setRaiseAmt(clamp(bb || min))}>
-                    {bb > 0 ? '1 BB' : 'Min'}
+                  <button type="button" className={styles.presetBtn} disabled={disabled} onClick={() => setRaiseAmt(clamp(min))}>
+                    Min
                   </button>
                   <button type="button" className={styles.presetBtn} disabled={disabled} onClick={() => setRaiseAmt(clamp(Math.round(pot / 2) || min))}>
                     1/2 Pot
@@ -112,9 +130,12 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
                   <button type="button" className={styles.presetBtn} disabled={disabled} onClick={() => setRaiseAmt(clamp(pot || min))}>
                     Pot
                   </button>
+                  <button type="button" className={styles.presetBtn} disabled={disabled} onClick={submitSizedAction}>
+                    {betLabel} {clamp(raiseAmt)}
+                  </button>
                 </>
               )}
-              {canAllIn && (
+              {canAllIn && !allInIsForcedCall && (
                 <button type="button" className={`${styles.presetBtn} ${economy.allInPreset}`} disabled={disabled} onClick={() => onAct('all-in')}>
                   All-in
                 </button>
