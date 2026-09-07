@@ -23,6 +23,7 @@ function emptySeat(i: number, stack = 0): SeatState {
     allIn: false,
     sittingOut: true,
     hasActed: false,
+    lastAction: null,
   };
 }
 
@@ -77,6 +78,7 @@ export function sitPlayer(
     totalBet: 0,
     holeCards: null,
     hasActed: false,
+    lastAction: null,
   };
   return { ...state, seats };
 }
@@ -117,6 +119,7 @@ export function startHand(state: GameState, seed?: number): GameState {
       folded: s.sittingOut || s.stack <= 0,
       allIn: false,
       hasActed: false,
+      lastAction: null,
       stack: s.stack,
     })),
     community: [],
@@ -161,7 +164,9 @@ export function startHand(state: GameState, seed?: number): GameState {
   next.bbSeat = bb;
 
   postBlind(next, sb, next.config.smallBlind);
+  next.seats[sb].lastAction = { type: 'bet', amount: next.config.smallBlind };
   postBlind(next, bb, next.config.bigBlind);
+  next.seats[bb].lastAction = { type: 'bet', amount: next.config.bigBlind };
   next.currentBet = Math.max(next.seats[sb].bet, next.seats[bb].bet);
   next.minRaise = next.config.bigBlind;
   next.pot = totalPot(next.seats);
@@ -213,7 +218,7 @@ function playersLeftToAct(state: GameState): SeatState[] {
 function advanceStreet(state: GameState): GameState {
   const next: GameState = {
     ...state,
-    seats: state.seats.map((s) => ({ ...s, bet: 0, hasActed: false })),
+    seats: state.seats.map((s) => ({ ...s, bet: 0, hasActed: false, lastAction: null })),
     currentBet: 0,
     minRaise: state.config.bigBlind,
     lastAggressor: null,
@@ -372,6 +377,7 @@ export function applyAction(
 
   const record = (t: ActionType, amt?: number) => {
     next.history.push({ type: t, amount: amt, seat: seatIdx });
+    seat.lastAction = { type: t, amount: amt };
   };
 
   if (type === 'fold') {

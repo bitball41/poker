@@ -30,6 +30,8 @@ export interface SeatState {
   allIn: boolean;
   sittingOut: boolean;
   hasActed: boolean;
+  /** Cleared each street — UI label over avatar */
+  lastAction: { type: ActionType; amount?: number } | null;
 }
 
 export interface SidePot {

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { GameState, ActionType, Card, PlayerAction } from '../../types/poker';
+import type { GameState, ActionType, Card } from '../../types/poker';
 import { CardView } from './CardView';
 import { ActionBar } from './ActionBar';
 import { getLegalActions } from '../../engine/game';
@@ -34,18 +34,22 @@ function heroHandLabel(hole: Card[] | null, community: Card[]): string {
   return CATEGORY_NAMES['high-card'];
 }
 
-/** Most recent street action label for bet/raise/call pills */
-function lastAggressiveLabel(history: PlayerAction[], seatIndex: number): string | null {
-  for (let i = history.length - 1; i >= 0; i--) {
-    const a = history[i];
-    if (a.seat !== seatIndex) continue;
-    if (a.type === 'bet') return 'Bet';
-    if (a.type === 'raise') return 'Raise';
-    if (a.type === 'call') return 'Call';
-    if (a.type === 'all-in') return 'All-in';
-    if (a.type === 'check') return 'Check';
-    if (a.type === 'fold') return 'Fold';
-    return null;
+function actionCopy(
+  last: { type: ActionType; amount?: number } | null,
+  opts: { sb: number; bb: number; isSb: boolean; isBb: boolean },
+): { label: string; kind: 'passive' | 'aggressive' | 'fold' | 'blind' } | null {
+  if (!last) return null;
+  const amt = last.amount ?? 0;
+  if (last.type === 'fold') return { label: 'Fold', kind: 'fold' };
+  if (last.type === 'check') return { label: 'Check', kind: 'passive' };
+  if (last.type === 'call') return { label: amt ? `Call ${amt}` : 'Call', kind: 'aggressive' };
+  if (last.type === 'all-in') return { label: amt ? `All-in ${amt}` : 'All-in', kind: 'aggressive' };
+  if (last.type === 'raise') return { label: amt ? `Raise ${amt}` : 'Raise', kind: 'aggressive' };
+  if (last.type === 'bet') {
+    // Blinds tagged as bet amounts matching SB/BB at street start
+    if (opts.isSb && amt === opts.sb) return { label: 'SB', kind: 'blind' };
+    if (opts.isBb && amt === opts.bb) return { label: 'BB', kind: 'blind' };
+    return { label: amt ? `Bet ${amt}` : 'Bet', kind: 'aggressive' };
   }
   return null;
 }
@@ -68,40 +72,49 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
   const handLabel = heroHandLabel(hero?.holeCards ?? null, state.community);
   const heroEmoji = emojiForName(hero?.name || 'You');
   const showdown = state.street === 'complete' || state.street === 'showdown';
+  const sbAmt = state.config.smallBlind;
+  const bbAmt = state.config.bigBlind;
 
   return (
     <div className={styles.tableWrap}>
-      {/* Opponents — horizontal emoji row */}
       <div className={styles.oppRow}>
         {opponents.map((seat) => {
           const isTurn = state.currentSeat === seat.seatIndex;
           const isDealer = seat.seatIndex === state.button;
-          const dimmed = !isTurn || seat.folded;
-          const rawLabel =
-            seat.bet > 0
-              ? lastAggressiveLabel(state.history, seat.seatIndex) || 'Bet'
-              : lastAggressiveLabel(state.history, seat.seatIndex);
-          const showActionPill =
-            !!rawLabel &&
-            (rawLabel === 'Bet' ||
-              rawLabel === 'Raise' ||
-              rawLabel === 'Call' ||
-              rawLabel === 'All-in');
-          const actionLabel = showActionPill ? rawLabel : null;
+          const move = actionCopy(seat.lastAction, {
+            sb: sbAmt,
+            bb: bbAmt,
+            isSb: seat.seatIndex === state.sbSeat,
+            isBb: seat.seatIndex === state.bbSeat,
+          });
 
           return (
             <div
               key={seat.seatIndex}
               className={[
                 styles.oppSeat,
-                dimmed ? styles.oppDimmed : styles.oppActive,
                 seat.folded ? styles.oppFolded : '',
+                isTurn ? styles.oppTurn : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
             >
               <div className={styles.oppActionSlot}>
-                {showActionPill && <span className={styles.actionPill}>{actionLabel}</span>}
+                {move && (
+                  <span
+                    className={[
+                      styles.actionPill,
+                      move.kind === 'fold' ? styles.actionFold : '',
+                      move.kind === 'passive' ? styles.actionPassive : '',
+                      move.kind === 'blind' ? styles.actionBlind : '',
+                      move.kind === 'aggressive' ? styles.actionAgg : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {move.label}
+                  </span>
+                )}
               </div>
               <div className={styles.oppAvatarWrap}>
                 <span className={styles.oppEmoji} aria-hidden>
@@ -111,9 +124,6 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
               </div>
               <div className={styles.oppName}>{seat.name}</div>
               <div className={styles.oppStack}>{seat.stack}</div>
-              <div className={styles.oppBetSlot}>
-                {seat.bet > 0 && <span className={styles.betPill}>{seat.bet}</span>}
-              </div>
               {showdown && seat.holeCards && !seat.folded && (
                 <div className={styles.oppShowdown}>
                   <CardView card={seat.holeCards[0]} delay={0} />
@@ -127,7 +137,6 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
 
       {actingBot && <div className={styles.actingHint}>{actingBot}</div>}
 
-      {/* Community board + pot */}
       <div className={styles.stage}>
         <div className={styles.boardRow}>
           <div className={styles.board}>
@@ -167,7 +176,6 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
         )}
       </div>
 
-      {/* Actions */}
       <div className={styles.hud}>
         {isHeroTurn && (
           <ActionBar
@@ -179,7 +187,6 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
         )}
       </div>
 
-      {/* Hero — hole cards left, status tile right */}
       {hero && hero.playerId && (
         <div className={`${styles.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
           <div className={styles.heroCards}>
@@ -199,6 +206,30 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
           </div>
 
           <div className={styles.heroTile}>
+            {(() => {
+              const move = actionCopy(hero.lastAction, {
+                sb: sbAmt,
+                bb: bbAmt,
+                isSb: hero.seatIndex === state.sbSeat,
+                isBb: hero.seatIndex === state.bbSeat,
+              });
+              return move ? (
+                <span
+                  className={[
+                    styles.actionPill,
+                    styles.heroActionPill,
+                    move.kind === 'fold' ? styles.actionFold : '',
+                    move.kind === 'passive' ? styles.actionPassive : '',
+                    move.kind === 'blind' ? styles.actionBlind : '',
+                    move.kind === 'aggressive' ? styles.actionAgg : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  {move.label}
+                </span>
+              ) : null;
+            })()}
             <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
             <div className={styles.heroEmoji}>{heroEmoji}</div>
             <motion.div
@@ -209,7 +240,6 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
             >
               {hero.stack}
             </motion.div>
-            {hero.bet > 0 && <span className={styles.betPill}>{hero.bet}</span>}
             {hero.seatIndex === state.button && (
               <span className={styles.heroDealer}>D</span>
             )}

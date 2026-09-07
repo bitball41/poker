@@ -31,18 +31,13 @@
   transition: opacity 0.2s, filter 0.2s;
 }
 
-.oppActive {
-  opacity: 1;
-  filter: none;
-}
-
-.oppDimmed {
-  opacity: 0.35;
-  filter: grayscale(1);
+.oppTurn .oppAvatarWrap {
+  box-shadow: 0 0 0 2px #fff;
+  border-radius: 50%;
 }
 
 .oppFolded {
-  opacity: 0.25;
+  opacity: 0.32;
   filter: grayscale(1);
 }
 
@@ -54,15 +49,28 @@
 }
 
 .actionPill {
-  background: #1db954;
-  color: #fff;
   font-size: 0.62rem;
-  font-weight: 700;
-  padding: 0.15rem 0.45rem;
+  font-weight: 800;
+  padding: 0.18rem 0.5rem;
   border-radius: 999px;
   letter-spacing: 0.01em;
   line-height: 1.2;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actionAgg { background: #1db954; color: #fff; }
+.actionPassive { background: #3a3a3c; color: #fff; }
+.actionFold { background: #8e8e93; color: #fff; }
+.actionBlind { background: #f5c542; color: #111; }
+.heroActionPill {
+  position: absolute;
+  top: 0.45rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
 }
 
 .oppAvatarWrap {
