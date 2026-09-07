@@ -9,3 +9,5 @@ export * from './tournamentPolicy';
 export * from './legalize';
 export * from './timing';
 export * from './coach';
+export * from './ml/features';
+export * from './ml/model';
