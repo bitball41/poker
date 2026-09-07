@@ -1,7 +1,8 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { GameState, ActionType, Card } from '../../types/poker';
 import { CardView } from './CardView';
 import { ActionBar } from './ActionBar';
+import { HandLog } from './HandLog';
 import { getLegalActions } from '../../engine/game';
 import { evaluateHand, CATEGORY_NAMES } from '../../bots/handStrength';
 import styles from './table.module.css';
@@ -46,7 +47,6 @@ function actionCopy(
   if (last.type === 'all-in') return { label: amt ? `All-in ${amt}` : 'All-in', kind: 'aggressive' };
   if (last.type === 'raise') return { label: amt ? `Raise ${amt}` : 'Raise', kind: 'aggressive' };
   if (last.type === 'bet') {
-    // Blinds tagged as bet amounts matching SB/BB at street start
     if (opts.isSb && amt === opts.sb) return { label: 'SB', kind: 'blind' };
     if (opts.isBb && amt === opts.bb) return { label: 'BB', kind: 'blind' };
     return { label: amt ? `Bet ${amt}` : 'Bet', kind: 'aggressive' };
@@ -74,36 +74,156 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
   const showdown = state.street === 'complete' || state.street === 'showdown';
   const sbAmt = state.config.smallBlind;
   const bbAmt = state.config.bigBlind;
+  const heroIn = hero?.totalBet ?? 0;
+  const heroLeft = hero?.stack ?? 0;
 
   return (
-    <div className={styles.tableWrap}>
-      <div className={styles.oppRow}>
-        {opponents.map((seat) => {
-          const isTurn = state.currentSeat === seat.seatIndex;
-          const isDealer = seat.seatIndex === state.button;
-          const move = actionCopy(seat.lastAction, {
-            sb: sbAmt,
-            bb: bbAmt,
-            isSb: seat.seatIndex === state.sbSeat,
-            isBb: seat.seatIndex === state.bbSeat,
-          });
+    <div className={styles.playShell}>
+      <div className={styles.tableWrap}>
+        <div className={styles.moneyStrip} aria-label="Money">
+          <div className={styles.moneyCell}>
+            <span className={styles.moneyLabel}>Pot</span>
+            <span className={styles.moneyValue}>{state.pot}</span>
+          </div>
+          <div className={styles.moneyCell}>
+            <span className={styles.moneyLabel}>Your bet</span>
+            <span className={styles.moneyValue}>{heroIn}</span>
+          </div>
+          <div className={styles.moneyCell}>
+            <span className={styles.moneyLabel}>You have</span>
+            <span className={`${styles.moneyValue} ${styles.moneyStrong}`}>{heroLeft}</span>
+          </div>
+        </div>
 
-          return (
-            <div
-              key={seat.seatIndex}
-              className={[
-                styles.oppSeat,
-                seat.folded ? styles.oppFolded : '',
-                isTurn ? styles.oppTurn : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            >
-              <div className={styles.oppActionSlot}>
-                {move && (
+        <div className={styles.oppRow}>
+          {opponents.map((seat) => {
+            const isTurn = state.currentSeat === seat.seatIndex;
+            const isDealer = seat.seatIndex === state.button;
+            const move = actionCopy(seat.lastAction, {
+              sb: sbAmt,
+              bb: bbAmt,
+              isSb: seat.seatIndex === state.sbSeat,
+              isBb: seat.seatIndex === state.bbSeat,
+            });
+
+            return (
+              <div
+                key={seat.seatIndex}
+                className={[
+                  styles.oppSeat,
+                  seat.folded ? styles.oppFolded : '',
+                  isTurn ? styles.oppTurn : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <div className={styles.oppActionSlot}>
+                  {move && (
+                    <span
+                      className={[
+                        styles.actionPill,
+                        move.kind === 'fold' ? styles.actionFold : '',
+                        move.kind === 'passive' ? styles.actionPassive : '',
+                        move.kind === 'blind' ? styles.actionBlind : '',
+                        move.kind === 'aggressive' ? styles.actionAgg : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      {move.label}
+                    </span>
+                  )}
+                </div>
+                <div className={styles.oppAvatarWrap}>
+                  <span className={styles.oppEmoji} aria-hidden>
+                    {emojiForName(seat.name || '?')}
+                  </span>
+                  {isDealer && <span className={styles.dealerBadge}>D</span>}
+                </div>
+                <div className={styles.oppName}>{seat.name}</div>
+                <div className={styles.oppStack}>{seat.stack}</div>
+                {showdown && seat.holeCards && !seat.folded && (
+                  <div className={styles.oppShowdown}>
+                    <CardView card={seat.holeCards[0]} delay={0} />
+                    <CardView card={seat.holeCards[1]} delay={0.04} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {actingBot && <div className={styles.actingHint}>{actingBot}</div>}
+
+        <div className={styles.stage}>
+          <div className={styles.boardRow}>
+            <div className={styles.board}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <CardView
+                  key={i}
+                  card={state.community[i] ?? null}
+                  slot
+                  delay={state.community[i] ? i * 0.06 : 0}
+                />
+              ))}
+            </div>
+          </div>
+
+          {state.winners && state.winners.length > 0 && (
+            <div className={styles.winnerBanner}>
+              {state.winners.map((w, i) => (
+                <span key={i}>
+                  {state.seats[w.seat]?.name} wins {w.amount}
+                  {w.handName ? ` · ${w.handName}` : ''}
+                  {i < state.winners!.length - 1 ? ' · ' : ''}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.hud}>
+          {isHeroTurn && (
+            <ActionBar
+              legal={legal}
+              pot={state.pot}
+              bb={state.config.bigBlind}
+              onAct={(t, a) => onAct(t as ActionType, a)}
+            />
+          )}
+        </div>
+
+        {hero && hero.playerId && (
+          <div className={`${styles.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
+            <div className={styles.heroCards}>
+              {hero.holeCards && !hero.folded ? (
+                <>
+                  <CardView card={hero.holeCards[0]} large delay={0} />
+                  <CardView card={hero.holeCards[1]} large delay={0.05} />
+                </>
+              ) : hero.folded ? (
+                <div className={styles.foldedTag}>Folded</div>
+              ) : showdown && hero.holeCards ? (
+                <>
+                  <CardView card={hero.holeCards[0]} large delay={0} />
+                  <CardView card={hero.holeCards[1]} large delay={0.05} />
+                </>
+              ) : null}
+            </div>
+
+            <div className={styles.heroTile}>
+              {(() => {
+                const move = actionCopy(hero.lastAction, {
+                  sb: sbAmt,
+                  bb: bbAmt,
+                  isSb: hero.seatIndex === state.sbSeat,
+                  isBb: hero.seatIndex === state.bbSeat,
+                });
+                return move ? (
                   <span
                     className={[
                       styles.actionPill,
+                      styles.heroActionPill,
                       move.kind === 'fold' ? styles.actionFold : '',
                       move.kind === 'passive' ? styles.actionPassive : '',
                       move.kind === 'blind' ? styles.actionBlind : '',
@@ -114,140 +234,29 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
                   >
                     {move.label}
                   </span>
-                )}
-              </div>
-              <div className={styles.oppAvatarWrap}>
-                <span className={styles.oppEmoji} aria-hidden>
-                  {emojiForName(seat.name || '?')}
-                </span>
-                {isDealer && <span className={styles.dealerBadge}>D</span>}
-              </div>
-              <div className={styles.oppName}>{seat.name}</div>
-              <div className={styles.oppStack}>{seat.stack}</div>
-              {showdown && seat.holeCards && !seat.folded && (
-                <div className={styles.oppShowdown}>
-                  <CardView card={seat.holeCards[0]} delay={0} />
-                  <CardView card={seat.holeCards[1]} delay={0.04} />
-                </div>
+                ) : null;
+              })()}
+              <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
+              <div className={styles.heroEmoji}>{heroEmoji}</div>
+              <motion.div
+                className={styles.heroStackBig}
+                key={hero.stack}
+                initial={{ opacity: 0.6 }}
+                animate={{ opacity: 1 }}
+              >
+                {hero.stack}
+              </motion.div>
+              {hero.seatIndex === state.button && (
+                <span className={styles.heroDealer}>D</span>
               )}
             </div>
-          );
-        })}
-      </div>
-
-      {actingBot && <div className={styles.actingHint}>{actingBot}</div>}
-
-      <div className={styles.stage}>
-        <div className={styles.boardRow}>
-          <div className={styles.board}>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <CardView
-                key={i}
-                card={state.community[i] ?? null}
-                slot
-                delay={state.community[i] ? i * 0.06 : 0}
-              />
-            ))}
-          </div>
-          <AnimatePresence>
-            {state.pot > 0 && (
-              <motion.div
-                key="pot"
-                className={styles.pot}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                {state.pot}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {state.winners && state.winners.length > 0 && (
-          <div className={styles.winnerBanner}>
-            {state.winners.map((w, i) => (
-              <span key={i}>
-                {state.seats[w.seat]?.name} wins {w.amount}
-                {w.handName ? ` · ${w.handName}` : ''}
-                {i < state.winners!.length - 1 ? ' · ' : ''}
-              </span>
-            ))}
           </div>
         )}
+
+        {coachLine && <div className={styles.coachTiny}>{coachLine}</div>}
       </div>
 
-      <div className={styles.hud}>
-        {isHeroTurn && (
-          <ActionBar
-            legal={legal}
-            pot={state.pot}
-            bb={state.config.bigBlind}
-            onAct={(t, a) => onAct(t as ActionType, a)}
-          />
-        )}
-      </div>
-
-      {hero && hero.playerId && (
-        <div className={`${styles.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
-          <div className={styles.heroCards}>
-            {hero.holeCards && !hero.folded ? (
-              <>
-                <CardView card={hero.holeCards[0]} large delay={0} />
-                <CardView card={hero.holeCards[1]} large delay={0.05} />
-              </>
-            ) : hero.folded ? (
-              <div className={styles.foldedTag}>Folded</div>
-            ) : showdown && hero.holeCards ? (
-              <>
-                <CardView card={hero.holeCards[0]} large delay={0} />
-                <CardView card={hero.holeCards[1]} large delay={0.05} />
-              </>
-            ) : null}
-          </div>
-
-          <div className={styles.heroTile}>
-            {(() => {
-              const move = actionCopy(hero.lastAction, {
-                sb: sbAmt,
-                bb: bbAmt,
-                isSb: hero.seatIndex === state.sbSeat,
-                isBb: hero.seatIndex === state.bbSeat,
-              });
-              return move ? (
-                <span
-                  className={[
-                    styles.actionPill,
-                    styles.heroActionPill,
-                    move.kind === 'fold' ? styles.actionFold : '',
-                    move.kind === 'passive' ? styles.actionPassive : '',
-                    move.kind === 'blind' ? styles.actionBlind : '',
-                    move.kind === 'aggressive' ? styles.actionAgg : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  {move.label}
-                </span>
-              ) : null;
-            })()}
-            <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
-            <div className={styles.heroEmoji}>{heroEmoji}</div>
-            <motion.div
-              className={styles.heroStackBig}
-              key={hero.stack}
-              initial={{ opacity: 0.6 }}
-              animate={{ opacity: 1 }}
-            >
-              {hero.stack}
-            </motion.div>
-            {hero.seatIndex === state.button && (
-              <span className={styles.heroDealer}>D</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {coachLine && <div className={styles.coachTiny}>{coachLine}</div>}
+      <HandLog state={state} />
     </div>
   );
 }

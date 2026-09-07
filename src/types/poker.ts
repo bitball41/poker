@@ -14,6 +14,7 @@ export interface PlayerAction {
   type: ActionType;
   amount?: number;
   seat: number;
+  street?: Street;
 }
 
 export interface SeatState {

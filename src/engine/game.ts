@@ -165,8 +165,10 @@ export function startHand(state: GameState, seed?: number): GameState {
 
   postBlind(next, sb, next.config.smallBlind);
   next.seats[sb].lastAction = { type: 'bet', amount: next.config.smallBlind };
+  next.history.push({ type: 'bet', amount: next.config.smallBlind, seat: sb, street: 'preflop' });
   postBlind(next, bb, next.config.bigBlind);
   next.seats[bb].lastAction = { type: 'bet', amount: next.config.bigBlind };
+  next.history.push({ type: 'bet', amount: next.config.bigBlind, seat: bb, street: 'preflop' });
   next.currentBet = Math.max(next.seats[sb].bet, next.seats[bb].bet);
   next.minRaise = next.config.bigBlind;
   next.pot = totalPot(next.seats);
@@ -376,7 +378,7 @@ export function applyAction(
   const toCall = Math.max(0, next.currentBet - seat.bet);
 
   const record = (t: ActionType, amt?: number) => {
-    next.history.push({ type: t, amount: amt, seat: seatIdx });
+    next.history.push({ type: t, amount: amt, seat: seatIdx, street: next.street });
     seat.lastAction = { type: t, amount: amt };
   };
 
@@ -402,7 +404,7 @@ export function applyAction(
       if (s.seatIndex !== seatIdx && !s.folded && !s.allIn) s.hasActed = false;
     }
     seat.hasActed = true;
-    record('bet', add);
+    record('bet', seat.bet);
   } else if (type === 'raise') {
     const add = amount!;
     const prevBet = next.currentBet;
@@ -415,7 +417,7 @@ export function applyAction(
       if (s.seatIndex !== seatIdx && !s.folded && !s.allIn) s.hasActed = false;
     }
     seat.hasActed = true;
-    record('raise', add);
+    record('raise', seat.bet);
   } else if (type === 'all-in') {
     const add = seat.stack;
     const prevBet = next.currentBet;
