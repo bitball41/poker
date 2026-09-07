@@ -5,6 +5,7 @@ import { getGuestName, setGuestName } from '../lib/guest';
 import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
 import { loadProgress, rankName } from '../economy/progress';
 import styles from './pages.module.css';
+import economy from './economy.module.css';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -57,18 +58,18 @@ export function Landing() {
             <p className={styles.muted}>Checking Liminal Chat account…</p>
           ) : identity.account ? (
             <>
-              <div className={styles.identityLine}>
+              <div className={economy.identityLine}>
                 {identity.pfp ? (
-                  <img className={styles.identityAvatar} src={identity.pfp} alt="" />
+                  <img className={economy.identityAvatar} src={identity.pfp} alt="" />
                 ) : (
-                  <div className={styles.identityAvatarFallback}>{identity.displayName.slice(0, 1).toUpperCase()}</div>
+                  <div className={economy.identityAvatarFallback}>{identity.displayName.slice(0, 1).toUpperCase()}</div>
                 )}
                 <div>
                   <strong>{identity.displayName}</strong>
                   <div className={styles.muted}>@{identity.account.username} · Liminal account</div>
                 </div>
               </div>
-              <div className={styles.identityStats}>
+              <div className={economy.identityStats}>
                 <span><b>{progress.chips}</b> chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
@@ -86,7 +87,7 @@ export function Landing() {
                   onBlur={saveName}
                 />
               </label>
-              <div className={styles.identityStats}>
+              <div className={economy.identityStats}>
                 <span><b>{progress.chips}</b> chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
@@ -107,7 +108,7 @@ export function Landing() {
               ))}
             </select>
           </label>
-          <div className={styles.fixedStack}>Your stack: <b>{progress.chips}</b> chips</div>
+          <div className={economy.fixedStack}>Your stack: <b>{progress.chips}</b> chips</div>
           <button
             className={styles.primary}
             disabled={identity.loading}
