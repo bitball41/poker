@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:bots": "node scripts/test-bots.mjs",
+    "train:data": "node scripts/generate-training-data.mjs",
+    "train:model": "python training/train.py",
     "lint": "oxlint"
   },
   "dependencies": {
