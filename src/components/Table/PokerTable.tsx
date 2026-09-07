@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import type { GameState, ActionType, Card } from '../../types/poker';
+import type { BlindPressure } from '../../economy/blinds';
 import { CardView } from './CardView';
 import { ActionBar } from './ActionBar';
 import { HandLog } from './HandLog';
@@ -30,6 +31,10 @@ function heroHandLabel(hole: Card[] | null, community: Card[]): string {
   return CATEGORY_NAMES['high-card'];
 }
 
+function cardKey(prefix: string, card: Card | null | undefined): string {
+  return `${prefix}-${card ? `${card.rank}${card.suit}` : 'slot'}`;
+}
+
 function actionCopy(
   last: { type: ActionType; amount?: number } | null,
   opts: { sb: number; bb: number; isSb: boolean; isBb: boolean },
@@ -55,10 +60,22 @@ interface Props {
   heroSeat: number;
   coachLine?: string | null;
   actingBot?: string | null;
+  heroAvatarUrl?: string | null;
+  rankLabel?: string;
+  pressure?: BlindPressure;
   onAct: (type: ActionType, amount?: number) => void;
 }
 
-export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Props) {
+export function PokerTable({
+  state,
+  heroSeat,
+  coachLine,
+  actingBot,
+  heroAvatarUrl,
+  rankLabel,
+  pressure,
+  onAct,
+}: Props) {
   const legal = state.currentSeat === heroSeat ? getLegalActions(state) : [];
   const hero = state.seats[heroSeat];
   const isHeroTurn = state.currentSeat === heroSeat && state.street !== 'complete';
@@ -80,6 +97,13 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
           <div className={styles.moneyCell}><span className={styles.moneyLabel}>You have</span><span className={`${styles.moneyValue} ${styles.moneyStrong}`}>{heroLeft}</span></div>
         </div>
 
+        {(pressure || rankLabel) && (
+          <div className={styles.tableMetaRow}>
+            {pressure && <span>Hand {state.handNo} · blinds {state.config.smallBlind}/{state.config.bigBlind} · target {pressure.targetChips} by hand {pressure.targetHand}</span>}
+            {rankLabel && <span className={styles.rankMeta}>{rankLabel}</span>}
+          </div>
+        )}
+
         <div className={styles.oppRow}>
           {opponents.map((seat) => {
             const isTurn = state.currentSeat === seat.seatIndex;
@@ -100,7 +124,12 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
                 </div>
                 <div className={styles.oppName}>{seat.name}</div>
                 <div className={styles.oppStack}>{seat.stack}</div>
-                {showdown && seat.holeCards && !seat.folded && <div className={styles.oppShowdown}><CardView card={seat.holeCards[0]} delay={0} /><CardView card={seat.holeCards[1]} delay={0.04} /></div>}
+                {showdown && seat.holeCards && !seat.folded && (
+                  <div className={styles.oppShowdown}>
+                    <CardView key={cardKey(`opp-${seat.seatIndex}-0`, seat.holeCards[0])} card={seat.holeCards[0]} delay={0} />
+                    <CardView key={cardKey(`opp-${seat.seatIndex}-1`, seat.holeCards[1])} card={seat.holeCards[1]} delay={0.08} />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -111,7 +140,10 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
         <div className={styles.stage}>
           <div className={styles.boardRow}>
             <div className={styles.board}>
-              {[0, 1, 2, 3, 4].map((i) => <CardView key={i} card={state.community[i] ?? null} slot delay={state.community[i] ? i * 0.06 : 0} />)}
+              {[0, 1, 2, 3, 4].map((i) => {
+                const card = state.community[i] ?? null;
+                return <CardView key={cardKey(`board-${i}`, card)} card={card} slot delay={card ? i * 0.08 : 0} />;
+              })}
             </div>
           </div>
           {state.winners && state.winners.length > 0 && <div className={styles.winnerBanner}>{state.winners.map((w, i) => <span key={i}>{state.seats[w.seat]?.name} wins {w.amount}{w.handName ? ` · ${w.handName}` : ''}{i < state.winners!.length - 1 ? ' · ' : ''}</span>)}</div>}
@@ -124,7 +156,19 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
         {hero && hero.playerId && (
           <div className={`${styles.heroZone} ${fix.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
             <div className={`${styles.heroCards} ${fix.heroCards}`}>
-              {hero.holeCards && !hero.folded ? <><CardView card={hero.holeCards[0]} large delay={0} /><CardView card={hero.holeCards[1]} large delay={0.05} /></> : hero.folded ? <div className={styles.foldedTag}>Folded</div> : showdown && hero.holeCards ? <><CardView card={hero.holeCards[0]} large delay={0} /><CardView card={hero.holeCards[1]} large delay={0.05} /></> : null}
+              {hero.holeCards && !hero.folded ? (
+                <>
+                  <CardView key={cardKey('hero-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
+                  <CardView key={cardKey('hero-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
+                </>
+              ) : hero.folded ? (
+                <div className={styles.foldedTag}>Folded</div>
+              ) : showdown && hero.holeCards ? (
+                <>
+                  <CardView key={cardKey('hero-show-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
+                  <CardView key={cardKey('hero-show-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
+                </>
+              ) : null}
             </div>
 
             <div className={`${styles.heroTile} ${fix.heroTile}`}>
@@ -137,7 +181,11 @@ export function PokerTable({ state, heroSeat, coachLine, actingBot, onAct }: Pro
                 return move ? <span className={[styles.actionPill, styles.heroActionPill, move.kind === 'fold' ? styles.actionFold : '', move.kind === 'passive' ? styles.actionPassive : '', move.kind === 'blind' ? styles.actionBlind : '', move.kind === 'aggressive' ? styles.actionAgg : ''].filter(Boolean).join(' ')}>{move.label}</span> : null;
               })()}
               <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
-              <div className={styles.heroEmoji}>{heroEmoji}</div>
+              {heroAvatarUrl ? (
+                <img className={styles.heroPfp} src={heroAvatarUrl} alt="" />
+              ) : (
+                <div className={styles.heroEmoji}>{heroEmoji}</div>
+              )}
               <div className={fix.heroName}>{hero.name || 'You'}</div>
               <motion.div className={styles.heroStackBig} key={hero.stack} initial={{ opacity: 0.6 }} animate={{ opacity: 1 }}>{hero.stack}</motion.div>
               {hero.seatIndex === state.button && <span className={styles.heroDealer}>D</span>}
