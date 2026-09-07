@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { Card } from '../../types/poker';
 import { RANK_LABELS, SUIT_SYMBOLS } from '../../engine/cards';
 import styles from './table.module.css';
@@ -13,8 +13,10 @@ interface Props {
 }
 
 export function CardView({ card, faceDown, large, delay = 0, slot }: Props) {
+  const reduceMotion = useReducedMotion();
   const empty = slot && !card;
   const back = faceDown || empty || !card;
+  const faceUp = Boolean(card && !back);
   const red = card && !back && (card.suit === 'h' || card.suit === 'd');
 
   return (
@@ -28,9 +30,22 @@ export function CardView({ card, faceDown, large, delay = 0, slot }: Props) {
       ]
         .filter(Boolean)
         .join(' ')}
-      initial={{ opacity: 0, y: -10, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, type: 'spring', stiffness: 280, damping: 24 }}
+      style={{
+        transformPerspective: 900,
+        transformStyle: 'preserve-3d',
+        backfaceVisibility: 'hidden',
+      }}
+      initial={reduceMotion
+        ? { opacity: 0 }
+        : faceUp
+          ? { opacity: 0.35, y: -8, scale: 0.96, rotateY: 88 }
+          : { opacity: 0, y: -8, scale: 0.96, rotateY: 0 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotateY: 0 }}
+      transition={reduceMotion
+        ? { delay, duration: 0.12 }
+        : faceUp
+          ? { delay, rotateY: { duration: 0.34, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.18 }, y: { duration: 0.28 } }
+          : { delay, type: 'spring', stiffness: 280, damping: 24 }}
     >
       {card && !back ? (
         <>
