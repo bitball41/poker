@@ -27,6 +27,11 @@ interface EmbeddedAccount {
   ring?: string | null;
 }
 
+interface LiminalIdentityMessage {
+  type?: string;
+  profile?: EmbeddedAccount;
+}
+
 declare global {
   interface Window {
     __LIMINAL_ACCOUNT__?: EmbeddedAccount;
@@ -44,6 +49,40 @@ function normalizeEmbedded(profile: EmbeddedAccount | undefined): LiminalAccount
   };
 }
 
+function inferredParentOrigin(): string | null {
+  if (import.meta.env.VITE_LIMINAL_PARENT_ORIGIN) return import.meta.env.VITE_LIMINAL_PARENT_ORIGIN;
+  try {
+    return document.referrer ? new URL(document.referrer).origin : null;
+  } catch {
+    return null;
+  }
+}
+
+async function requestParentIdentity(timeoutMs = 450): Promise<LiminalAccountProfile | null> {
+  if (window.parent === window) return null;
+  const parentOrigin = inferredParentOrigin();
+  if (!parentOrigin) return null;
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (profile: LiminalAccountProfile | null) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('message', onMessage);
+      clearTimeout(timer);
+      resolve(profile);
+    };
+    const onMessage = (event: MessageEvent<LiminalIdentityMessage>) => {
+      if (event.source !== window.parent || event.origin !== parentOrigin) return;
+      if (event.data?.type !== 'LIMINAL_POKER_IDENTITY') return;
+      finish(normalizeEmbedded(event.data.profile));
+    };
+    const timer = window.setTimeout(() => finish(null), timeoutMs);
+    window.addEventListener('message', onMessage);
+    window.parent.postMessage({ type: 'LIMINAL_POKER_IDENTITY_REQUEST' }, parentOrigin);
+  });
+}
+
 export function readLiminalSession(): { username: string; passwordHash: string } | null {
   try {
     const username = localStorage.getItem('lc_user');
@@ -56,16 +95,20 @@ export function readLiminalSession(): { username: string; passwordHash: string }
 
 /**
  * Resolve the existing Liminal Chat account without creating a second login system.
- * Direct Liminal integration can inject window.__LIMINAL_ACCOUNT__. The standalone
- * build falls back to Liminal Chat's lc_user/lc_pass_hash session and verifies it
- * against the existing profiles table before exposing only safe profile fields.
+ * Integration order:
+ * 1. Direct in-app injection via window.__LIMINAL_ACCOUNT__.
+ * 2. Same-origin saved Liminal Chat session.
+ * 3. Cross-origin parent/iframe identity handshake.
+ *
+ * Password hashes are used only to verify the legacy saved session and are never
+ * returned from this module or exposed to Poker components.
  */
 export async function loadLiminalAccount(): Promise<LiminalAccountProfile | null> {
   const embedded = normalizeEmbedded(window.__LIMINAL_ACCOUNT__);
   if (embedded) return embedded;
 
   const session = readLiminalSession();
-  if (!session) return null;
+  if (!session) return requestParentIdentity();
 
   try {
     const { data, error } = await liminalClient
@@ -73,7 +116,9 @@ export async function loadLiminalAccount(): Promise<LiminalAccountProfile | null
       .select('username,display_name,pfp,color,ring,is_banned,password_hash')
       .eq('username', session.username)
       .maybeSingle();
-    if (error || !data || data.is_banned || data.password_hash !== session.passwordHash) return null;
+    if (error || !data || data.is_banned || data.password_hash !== session.passwordHash) {
+      return requestParentIdentity();
+    }
     return {
       username: data.username,
       displayName: data.display_name || data.username,
@@ -82,7 +127,7 @@ export async function loadLiminalAccount(): Promise<LiminalAccountProfile | null
       ring: data.ring || null,
     };
   } catch {
-    return null;
+    return requestParentIdentity();
   }
 }
 
