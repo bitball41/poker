@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLobby } from '../hooks/useLobby';
+import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
+import { setGuestName } from '../lib/guest';
 import { PokerTable } from '../components/Table/PokerTable';
 import styles from './pages.module.css';
 
@@ -14,19 +17,26 @@ export function Lobby() {
   const { code } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const identity = useLiminalIdentity();
   const isCreate = params.get('host') === '1';
   const seatsWanted = finiteInt(params.get('seats'), 6, 2, 9);
-  const buyIn = finiteInt(params.get('buyIn'), 10000, 100, 1_000_000);
+  const buyIn = finiteInt(params.get('buyIn'), 400, 100, 1_000_000);
   const fillBots = params.get('bots') !== '0';
 
+  // useLobby already sends the guest display name to the secure RPCs. Mirror the
+  // verified Liminal display name into that compatibility slot before joining.
+  useEffect(() => {
+    if (!identity.loading) setGuestName(identity.displayName);
+  }, [identity.displayName, identity.loading]);
+
   const lobby = useLobby(
-    code?.toUpperCase(),
+    identity.loading ? '' : code?.toUpperCase(),
     isCreate
       ? {
           maxSeats: seatsWanted,
           buyIn,
-          smallBlind: Math.max(25, Math.round(buyIn / 200)),
-          bigBlind: Math.max(50, Math.round(buyIn / 100)),
+          smallBlind: 2,
+          bigBlind: 4,
           fillWithBots: fillBots,
         }
       : undefined,
@@ -60,7 +70,7 @@ export function Lobby() {
           <button type="button" className={styles.codeBadgeButton} onClick={() => void copyCode()} title="Copy lobby code">
             {lobby.meta?.code ?? code}
           </button>
-          <span className={styles.connectionBadge}>{lobby.connection}</span>
+          <span className={styles.connectionBadge}>{identity.loading ? 'identity' : lobby.connection}</span>
           <button type="button" className={styles.ghost} onClick={() => void leave()}>Leave</button>
         </div>
       </nav>
@@ -70,7 +80,9 @@ export function Lobby() {
         <div className={styles.banner}>Friends mode needs Supabase. Bot practice still works offline.</div>
       )}
 
-      {!lobby.meta ? (
+      {identity.loading ? (
+        <div className={styles.empty}>Loading Liminal account…</div>
+      ) : !lobby.meta ? (
         <div className={styles.empty}>Connecting lobby…</div>
       ) : lobby.meta.status === 'waiting' ? (
         <section className={styles.waitingRoom}>
@@ -78,7 +90,7 @@ export function Lobby() {
             <div>
               <h1>Waiting room</h1>
               <p className={styles.muted}>
-                {lobby.meta.maxSeats}-max · {lobby.meta.smallBlind}/{lobby.meta.bigBlind} blinds · {lobby.meta.buyIn.toLocaleString()} chips
+                {lobby.meta.maxSeats}-max · {lobby.meta.smallBlind}/{lobby.meta.bigBlind} blinds · {lobby.meta.buyIn.toLocaleString()} fake chips
               </p>
             </div>
             <button type="button" className={styles.secondary} onClick={() => void copyCode()}>
@@ -143,6 +155,7 @@ export function Lobby() {
           <PokerTable
             state={lobby.state}
             heroSeat={lobby.heroSeat}
+            heroAvatarUrl={identity.pfp}
             coachLine={`Lobby ${lobby.meta.code} · revision ${lobby.revision}${lobby.pendingAction ? ' · sending action…' : ''}`}
             onAct={lobby.heroAct}
           />
