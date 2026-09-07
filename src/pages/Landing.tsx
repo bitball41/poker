@@ -1,8 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getGuestName, setGuestName } from '../lib/guest';
 import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
+import {
+  loginLiminalAccount,
+  signupLiminalAccount,
+  signOutLiminalAccount,
+} from '../lib/liminalAccount';
 import { loadProgress, rankName } from '../economy/progress';
 import styles from './pages.module.css';
 import economy from './economy.module.css';
@@ -23,10 +28,51 @@ export function Landing() {
   const [seats, setSeats] = useState(6);
   const [fillBots, setFillBots] = useState(true);
   const [name, setName] = useState(() => getGuestName());
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authDisplayName, setAuthDisplayName] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authConfirm, setAuthConfirm] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const progress = useMemo(() => loadProgress(identity.identityKey), [identity.identityKey]);
 
   const saveName = () => {
     if (!identity.account) setGuestName(name);
+  };
+
+  const switchAuthMode = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setAuthError(null);
+    setAuthPassword('');
+    setAuthConfirm('');
+  };
+
+  const handleAuth = async (event: FormEvent) => {
+    event.preventDefault();
+    if (authBusy) return;
+    setAuthError(null);
+    setAuthBusy(true);
+    try {
+      if (authMode === 'signup') {
+        if (authPassword !== authConfirm) throw new Error('Passwords do not match.');
+        await signupLiminalAccount(authUsername, authDisplayName, authPassword);
+      } else {
+        await loginLiminalAccount(authUsername, authPassword);
+      }
+      setAuthPassword('');
+      setAuthConfirm('');
+      await identity.refresh();
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const signOut = async () => {
+    signOutLiminalAccount();
+    await identity.refresh();
   };
 
   return (
@@ -53,9 +99,9 @@ export function Landing() {
         transition={{ delay: 0.15 }}
       >
         <div className={styles.card}>
-          <h2>Your Liminal identity</h2>
+          <h2>Your Liminal account</h2>
           {identity.loading ? (
-            <p className={styles.muted}>Checking Liminal Chat account…</p>
+            <p className={styles.muted}>Checking Liminal account…</p>
           ) : identity.account ? (
             <>
               <div className={economy.identityLine}>
@@ -73,12 +119,93 @@ export function Landing() {
                 <span><b>{progress.chips}</b> chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
+              <div className={economy.accountActions}>
+                <button type="button" className={styles.secondary} onClick={() => void signOut()}>
+                  Sign out
+                </button>
+              </div>
             </>
           ) : (
             <>
-              <p className={styles.muted}>No Liminal Chat session found. Standalone guest mode still works.</p>
+              <p className={styles.muted}>
+                Sign in here with the same Liminal account Chat uses, or create one without leaving Poker.
+              </p>
+              <div className={economy.authTabs}>
+                <button
+                  type="button"
+                  className={`${economy.authTab} ${authMode === 'login' ? economy.authTabActive : ''}`}
+                  onClick={() => switchAuthMode('login')}
+                >
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className={`${economy.authTab} ${authMode === 'signup' ? economy.authTabActive : ''}`}
+                  onClick={() => switchAuthMode('signup')}
+                >
+                  Sign up
+                </button>
+              </div>
+              <form className={economy.authForm} onSubmit={handleAuth}>
+                {authMode === 'signup' && (
+                  <label className={styles.field}>
+                    Display name
+                    <input
+                      className={styles.textInput}
+                      value={authDisplayName}
+                      maxLength={40}
+                      autoComplete="name"
+                      onChange={(e) => setAuthDisplayName(e.target.value)}
+                    />
+                  </label>
+                )}
+                <label className={styles.field}>
+                  Username
+                  <input
+                    className={styles.textInput}
+                    value={authUsername}
+                    maxLength={20}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    autoComplete="username"
+                    spellCheck={false}
+                    onChange={(e) => setAuthUsername(e.target.value)}
+                  />
+                </label>
+                <label className={styles.field}>
+                  Password
+                  <input
+                    className={styles.textInput}
+                    type="password"
+                    value={authPassword}
+                    minLength={authMode === 'signup' ? 6 : undefined}
+                    autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                  />
+                </label>
+                {authMode === 'signup' && (
+                  <label className={styles.field}>
+                    Confirm password
+                    <input
+                      className={styles.textInput}
+                      type="password"
+                      value={authConfirm}
+                      minLength={6}
+                      autoComplete="new-password"
+                      onChange={(e) => setAuthConfirm(e.target.value)}
+                    />
+                  </label>
+                )}
+                {authError && <p className={economy.authError}>{authError}</p>}
+                <button className={styles.primary} type="submit" disabled={authBusy}>
+                  {authBusy ? 'Working…' : authMode === 'signup' ? 'Create Liminal account' : 'Log in'}
+                </button>
+              </form>
+              <p className={economy.accountNote}>
+                Guest play still works on this browser, but Liminal identity, name, PFP, and future account economy features use the account above.
+              </p>
               <label className={styles.field}>
-                Display name
+                Guest display name
                 <input
                   className={styles.textInput}
                   value={name}
@@ -88,7 +215,7 @@ export function Landing() {
                 />
               </label>
               <div className={economy.identityStats}>
-                <span><b>{progress.chips}</b> chips</span>
+                <span><b>{progress.chips}</b> guest chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
             </>
