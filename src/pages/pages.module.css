@@ -1,88 +1,104 @@
 .page {
   min-height: 100vh;
   padding: 1.25rem 1rem 2.5rem;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
-  background: #000;
 }
 
 .hero {
   text-align: center;
-  padding: 2.5rem 0 1.5rem;
+  padding: 2.1rem 0 0.5rem;
 }
 
 .wordmark {
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
-  font-weight: 400;
-  margin: 0 0 0.75rem;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.6rem, 7vw, 4.1rem);
+  font-weight: 500;
+  margin: 0 0 0.65rem;
+  letter-spacing: -0.03em;
 }
 
 .liminal {
-  font-family: 'Pacifico', cursive;
-  font-weight: 400;
-  color: #fff;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 650;
+  font-optical-sizing: auto;
+  color: var(--gold);
 }
 
 .poker {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 500;
-  color: #f2f2f2;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .liminalSm {
-  font-family: 'Pacifico', cursive;
-  color: #fff;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 650;
+  color: var(--gold);
 }
 
 .tagline {
-  color: rgba(255, 255, 255, 0.4);
-  max-width: 460px;
+  color: var(--muted);
+  max-width: 520px;
   margin: 0 auto;
-  line-height: 1.5;
-  font-size: 1rem;
+  line-height: 1.55;
+  font-size: 1.02rem;
 }
 
 .actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1.15fr 0.95fr;
   gap: 1rem;
-  margin: 1.5rem 0 2.5rem;
+  margin: 1.75rem 0 2.5rem;
+}
+
+.playStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .card {
-  background: #0a0a0a;
-  border: 1px solid #141414;
-  border-radius: 14px;
-  padding: 1.25rem;
+  background:
+    linear-gradient(180deg, rgba(228, 195, 106, 0.06), transparent 40%),
+    #10241a;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.3rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.cardFeatured {
+  background:
+    radial-gradient(ellipse at 90% -20%, rgba(228, 195, 106, 0.16), transparent 50%),
+    linear-gradient(180deg, #163526, #10241a);
 }
 
 .card h2 {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.18rem;
+  font-weight: 700;
   color: #fff;
 }
 
-.muted { color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; margin: 0; }
+.muted { color: var(--muted); font-size: 0.88rem; margin: 0; }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--muted);
 }
 
 .field select, .joinRow input, .textInput {
-  background: #050505;
-  border: 1px solid #141414;
-  color: #f2f2f2;
-  border-radius: 8px;
-  padding: 0.55rem 0.7rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
   font-size: 0.95rem;
 }
 
@@ -90,30 +106,31 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.82rem;
+  color: rgba(244, 239, 228, 0.7);
+  font-size: 0.84rem;
   line-height: 1.35;
 }
 
 .primary, .secondary {
   appearance: none;
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  font-weight: 600;
+  border-radius: 12px;
+  padding: 0.82rem 1rem;
+  font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  border: 1px solid #141414;
+  border: 1px solid transparent;
 }
 
 .primary {
-  background: #f2f2f2;
-  color: #050505;
-  border-color: #f2f2f2;
+  background: var(--gold);
+  color: #1a1206;
+  border-color: #f0d78a;
 }
 
 .secondary {
-  background: #0a0a0a;
-  color: #f2f2f2;
+  background: rgba(7, 20, 14, 0.55);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .primary:hover:not(:disabled), .secondary:hover:not(:disabled) { filter: brightness(1.08); }
@@ -138,11 +155,11 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(244, 239, 228, 0.38);
   font-size: 0.8rem;
 }
 
-.footer a { color: rgba(255, 255, 255, 0.55); }
+.footer a { color: var(--gold); }
 
 .topNav {
   display: flex;
@@ -153,9 +170,9 @@
 }
 
 .brand, .brandButton {
-  color: #f2f2f2;
+  color: var(--text);
   text-decoration: none;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
 }
 
 .brandButton {
@@ -170,8 +187,8 @@
 
 .ghost, .ghostLink {
   background: transparent;
-  border: 1px solid #141414;
-  color: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--border);
+  color: var(--muted);
   border-radius: 8px;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
@@ -181,41 +198,41 @@
 
 .empty {
   text-align: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--muted);
   padding: 4rem 1rem;
 }
 
 .banner {
-  background: #0a0a0a;
-  border: 1px solid #141414;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.8rem;
+  background: #10241a;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
   margin-bottom: 0.75rem;
 }
 
 .codeBadge, .codeBadgeButton {
   font-family: ui-monospace, monospace;
   letter-spacing: 0.12em;
-  border: 1px solid #141414;
+  border: 1px solid var(--border);
   padding: 0.35rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.85rem;
-  color: #f2f2f2;
+  color: var(--gold);
 }
 
 .codeBadgeButton {
   appearance: none;
-  background: #080808;
+  background: #10241a;
   cursor: pointer;
 }
 
 .connectionBadge {
-  border: 1px solid #141414;
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.28rem 0.55rem;
-  color: rgba(255,255,255,0.4);
+  color: var(--muted);
   font-size: 0.68rem;
   text-transform: capitalize;
 }
@@ -223,10 +240,10 @@
 .waitingRoom {
   max-width: 720px;
   margin: 2rem auto 0;
-  background: #080808;
-  border: 1px solid #141414;
-  border-radius: 16px;
-  padding: 1.2rem;
+  background: #10241a;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.3rem;
 }
 
 .waitingHeader {
@@ -255,10 +272,10 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 0.8rem;
-  background: #0d0d0d;
-  border: 1px solid #151515;
-  border-radius: 10px;
-  color: #f4f4f4;
+  background: rgba(7, 20, 14, 0.55);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
 }
 
 .playerRow > div:first-child {
@@ -268,13 +285,13 @@
 }
 
 .emptySeat {
-  color: rgba(255,255,255,0.28);
+  color: rgba(244, 239, 228, 0.32);
   border-style: dashed;
 }
 
 .seatMeta {
   font-size: 0.68rem;
-  color: rgba(255,255,255,0.34);
+  color: rgba(244, 239, 228, 0.4);
 }
 
 .playerRowActions {
@@ -290,14 +307,14 @@
   padding: 0.25rem 0.5rem;
 }
 
-.ready { background: rgba(255,255,255,0.12); color: #fff; }
-.notReady { background: #050505; color: rgba(255,255,255,0.35); }
+.ready { background: rgba(62, 207, 142, 0.18); color: #9ff0c8; }
+.notReady { background: rgba(0, 0, 0, 0.25); color: var(--muted); }
 
 .kickButton {
   appearance: none;
   background: transparent;
-  border: 1px solid #252525;
-  color: rgba(255,255,255,0.45);
+  border: 1px solid rgba(196, 92, 74, 0.45);
+  color: #e8a396;
   border-radius: 7px;
   padding: 0.3rem 0.5rem;
   cursor: pointer;
@@ -313,25 +330,23 @@
   margin-top: 1rem;
 }
 
-/* —— Play (in-table) minimal chrome —— */
 .playPage {
   max-width: 1280px;
   width: 100%;
   padding: 0.85rem 1.25rem 2rem;
-  background: #000;
 }
 
 .playNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
   padding: 0 0.25rem;
   min-height: 36px;
 }
 
 .backChevron {
-  color: #fff;
+  color: var(--gold);
   text-decoration: none;
   font-size: 1.85rem;
   font-weight: 300;
@@ -345,15 +360,22 @@
 .restartTiny {
   appearance: none;
   background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.28);
-  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.35rem 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
 }
 
-.restartTiny:hover { color: rgba(255, 255, 255, 0.55); }
+.restartTiny:hover { color: var(--text); }
+
+@media (max-width: 860px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 620px) {
   .topNav, .waitingHeader { align-items: flex-start; }

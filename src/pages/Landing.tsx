@@ -98,6 +98,82 @@ export function Landing() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
       >
+        <div className={styles.playStack}>
+        <div className={`${styles.card} ${styles.cardFeatured}`}>
+          <h2>Hold&apos;em vs Bots</h2>
+          <p className={styles.muted}>
+            First balance is 400 fake chips. Busting unlocks a 200-chip refill. Blinds rise every few hands and your stack persists.
+          </p>
+          <label className={styles.field}>
+            Table size
+            <select value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
+              {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                <option key={n} value={n}>{n}-max</option>
+              ))}
+            </select>
+          </label>
+          <div className={economy.fixedStack}>Your stack: <b>{progress.chips.toLocaleString('en-US')}</b> chips</div>
+          <button
+            className={styles.primary}
+            disabled={identity.loading}
+            onClick={() => {
+              saveName();
+              nav(`/play?seats=${seats}`);
+            }}
+          >
+            Sit &amp; Play
+          </button>
+        </div>
+
+        <div className={styles.card}>
+          <h2>Private Lobby</h2>
+          <p className={styles.muted}>Invite-code friends mode with a waiting room and reconnect support.</p>
+          <label className={styles.checkboxField}>
+            <input type="checkbox" checked={fillBots} onChange={(e) => setFillBots(e.target.checked)} />
+            Fill empty seats with bots when the host starts
+          </label>
+          <button
+            className={styles.secondary}
+            disabled={identity.loading}
+            onClick={() => {
+              saveName();
+              nav(`/lobby/${makeLobbyCode()}?host=1&seats=${seats}&buyIn=400&bots=${fillBots ? 1 : 0}`);
+            }}
+          >
+            Create Lobby
+          </button>
+          <div className={styles.joinRow}>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+              placeholder="CODE"
+              maxLength={6}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            <button
+              className={styles.secondary}
+              disabled={code.length !== 6 || identity.loading}
+              onClick={() => {
+                saveName();
+                nav(`/lobby/${code}`);
+              }}
+            >
+              Join
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.card}>
+          <h2>Blackjack</h2>
+          <p className={styles.muted}>Dealer bot + optional basic-strategy coach. Fake chips only. S17, 3:2 blackjack, dealer peeks.</p>
+          <button className={styles.secondary} onClick={() => nav('/blackjack')}>
+            Play Blackjack
+          </button>
+        </div>
+        </div>
+
         <div className={styles.card}>
           <h2>Your Liminal account</h2>
           {identity.loading ? (
@@ -116,7 +192,7 @@ export function Landing() {
                 </div>
               </div>
               <div className={economy.identityStats}>
-                <span><b>{progress.chips}</b> chips</span>
+                <span><b>{progress.chips.toLocaleString('en-US')}</b> chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
               <div className={economy.accountActions}>
@@ -215,85 +291,11 @@ export function Landing() {
                 />
               </label>
               <div className={economy.identityStats}>
-                <span><b>{progress.chips}</b> guest chips</span>
+                <span><b>{progress.chips.toLocaleString('en-US')}</b> guest chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
             </>
           )}
-        </div>
-
-        <div className={styles.card}>
-          <h2>Hold&apos;em vs Bots</h2>
-          <p className={styles.muted}>
-            First balance is 400 fake chips. Busting unlocks a 200-chip refill. Blinds rise every few hands and your stack persists.
-          </p>
-          <label className={styles.field}>
-            Table size
-            <select value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
-              {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                <option key={n} value={n}>{n}-max</option>
-              ))}
-            </select>
-          </label>
-          <div className={economy.fixedStack}>Your stack: <b>{progress.chips}</b> chips</div>
-          <button
-            className={styles.primary}
-            disabled={identity.loading}
-            onClick={() => {
-              saveName();
-              nav(`/play?seats=${seats}`);
-            }}
-          >
-            Sit &amp; Play
-          </button>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Private Lobby</h2>
-          <p className={styles.muted}>Invite-code friends mode with a waiting room and reconnect support.</p>
-          <label className={styles.checkboxField}>
-            <input type="checkbox" checked={fillBots} onChange={(e) => setFillBots(e.target.checked)} />
-            Fill empty seats with bots when the host starts
-          </label>
-          <button
-            className={styles.secondary}
-            disabled={identity.loading}
-            onClick={() => {
-              saveName();
-              nav(`/lobby/${makeLobbyCode()}?host=1&seats=${seats}&buyIn=400&bots=${fillBots ? 1 : 0}`);
-            }}
-          >
-            Create Lobby
-          </button>
-          <div className={styles.joinRow}>
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
-              placeholder="CODE"
-              maxLength={6}
-              autoCapitalize="characters"
-              autoCorrect="off"
-              spellCheck={false}
-            />
-            <button
-              className={styles.secondary}
-              disabled={code.length !== 6 || identity.loading}
-              onClick={() => {
-                saveName();
-                nav(`/lobby/${code}`);
-              }}
-            >
-              Join
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Blackjack</h2>
-          <p className={styles.muted}>Dealer bot + optional basic-strategy coach. Fake chips only.</p>
-          <button className={styles.secondary} onClick={() => nav('/blackjack')}>
-            Play Blackjack
-          </button>
         </div>
       </motion.section>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LegalAction } from '../../types/poker';
+import { formatChips } from '../../lib/format';
 import styles from './table.module.css';
 import economy from './tableEconomy.module.css';
 
@@ -52,29 +53,29 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
     >
       <div className={styles.actionRow}>
         {canFold && (
-          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct('fold')}>
+          <button type="button" className={`${styles.actBtn} ${styles.actFold}`} disabled={disabled} onClick={() => onAct('fold')}>
             Fold
           </button>
         )}
         {canCheck && (
-          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct('check')}>
+          <button type="button" className={`${styles.actBtn} ${styles.actCall}`} disabled={disabled} onClick={() => onAct('check')}>
             Check
           </button>
         )}
         {call && (
-          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct('call')}>
-            Call {call.callAmount}
+          <button type="button" className={`${styles.actBtn} ${styles.actCall}`} disabled={disabled} onClick={() => onAct('call')}>
+            Call {formatChips(call.callAmount ?? 0)}
           </button>
         )}
         {allInIsForcedCall && allIn && (
-          <button type="button" className={styles.actBtn} disabled={disabled} onClick={() => onAct('all-in')}>
-            Call {allIn.callAmount} · All-in
+          <button type="button" className={`${styles.actBtn} ${styles.actFold}`} disabled={disabled} onClick={() => onAct('all-in')}>
+            Call {formatChips(allIn.callAmount ?? 0)} · All-in
           </button>
         )}
         {raise && (
           <button
             type="button"
-            className={styles.actBtn}
+            className={`${styles.actBtn} ${styles.actRaise}`}
             disabled={disabled}
             aria-expanded={panelOpen}
             onClick={() => setPanelOpen((v) => !v)}
@@ -85,7 +86,7 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
         {!raise && hasSizingPanel && (
           <button
             type="button"
-            className={styles.actBtn}
+            className={`${styles.actBtn} ${styles.actRaise}`}
             disabled={disabled}
             aria-expanded={panelOpen}
             onClick={() => setPanelOpen((v) => !v)}
@@ -105,7 +106,7 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
           >
             {raise && (
               <div className={styles.sliderRow}>
-                <span className={styles.sliderHint}>{raiseAmt}</span>
+                <span className={styles.sliderHint}>{formatChips(raiseAmt)}</span>
                 <input
                   className={styles.raiseSlider}
                   type="range"
@@ -130,8 +131,8 @@ export function ActionBar({ legal, pot, bb, disabled, onAct }: Props) {
                   <button type="button" className={styles.presetBtn} disabled={disabled} onClick={() => setRaiseAmt(clamp(pot || min))}>
                     Pot
                   </button>
-                  <button type="button" className={styles.presetBtn} disabled={disabled} onClick={submitSizedAction}>
-                    {betLabel} {clamp(raiseAmt)}
+                  <button type="button" className={`${styles.presetBtn} ${styles.actRaise}`} disabled={disabled} onClick={submitSizedAction}>
+                    {betLabel} {formatChips(clamp(raiseAmt))}
                   </button>
                 </>
               )}

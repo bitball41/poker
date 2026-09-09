@@ -29,7 +29,10 @@ export function getChipBank(): number {
     localStorage.setItem('liminal_chip_bank', '10000');
     return 10000;
   }
-  return parseInt(v, 10) || 10000;
+  const n = Number.parseInt(v, 10);
+  // Zero is a real bankrupt bank. `n || 10000` used to gift 10k after a bust.
+  if (!Number.isFinite(n) || n < 0) return 10000;
+  return Math.floor(n);
 }
 
 export function setChipBank(n: number): void {

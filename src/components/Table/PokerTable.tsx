@@ -6,8 +6,9 @@ import { ActionBar } from './ActionBar';
 import { HandLog } from './HandLog';
 import { getLegalActions } from '../../engine/game';
 import { evaluateHand, CATEGORY_NAMES } from '../../bots/handStrength';
+import { formatChips } from '../../lib/format';
+import { opponentSeatStyle } from '../../lib/seatLayout';
 import styles from './table.module.css';
-import fix from './tableFixes.module.css';
 import economy from './tableEconomy.module.css';
 
 const EMOJI_POOL = [
@@ -44,14 +45,14 @@ function actionCopy(
   const amt = last.amount ?? 0;
   if (last.type === 'fold') return { label: 'Fold', kind: 'fold' };
   if (last.type === 'check') return { label: 'Check', kind: 'passive' };
-  if (last.type === 'call') return { label: amt ? `Call ${amt}` : 'Call', kind: 'passive' };
-  if (last.type === 'all-in') return { label: amt ? `All-in ${amt}` : 'All-in', kind: 'aggressive' };
-  if (last.type === 'raise') return { label: amt ? `Raise ${amt}` : 'Raise', kind: 'aggressive' };
+  if (last.type === 'call') return { label: amt ? `Call ${formatChips(amt)}` : 'Call', kind: 'passive' };
+  if (last.type === 'all-in') return { label: amt ? `All-in ${formatChips(amt)}` : 'All-in', kind: 'aggressive' };
+  if (last.type === 'raise') return { label: amt ? `Raise ${formatChips(amt)}` : 'Raise', kind: 'aggressive' };
   if (last.type === 'bet') {
     if (opts.isSb && amt === opts.sb && amt > 0) return { label: 'Small blind', kind: 'blind' };
     if (opts.isBb && amt === opts.bb && amt > 0) return { label: 'Big blind', kind: 'blind' };
     if (amt <= 0) return null;
-    return { label: `Bet ${amt}`, kind: 'aggressive' };
+    return { label: `Bet ${formatChips(amt)}`, kind: 'aggressive' };
   }
   return null;
 }
@@ -86,93 +87,110 @@ export function PokerTable({
   const showdown = state.street === 'complete' || state.street === 'showdown';
   const sbAmt = state.config.smallBlind;
   const bbAmt = state.config.bigBlind;
-  const heroIn = hero?.totalBet ?? 0;
   const heroLeft = hero?.stack ?? 0;
 
   return (
     <div className={styles.playShell}>
       <div className={styles.tableWrap}>
-        <div className={styles.moneyStrip} aria-label="Chips">
-          <div className={styles.moneyCell}><span className={styles.moneyLabel}>Pot</span><span className={styles.moneyValue}>{state.pot}</span></div>
-          <div className={styles.moneyCell}><span className={styles.moneyLabel}>Your bet</span><span className={styles.moneyValue}>{heroIn}</span></div>
-          <div className={styles.moneyCell}><span className={styles.moneyLabel}>You have</span><span className={`${styles.moneyValue} ${styles.moneyStrong}`}>{heroLeft}</span></div>
-        </div>
-
         {(pressure || rankLabel) && (
-          <div className={economy.tableMetaRow}>
-            {pressure && <span>Hand {state.handNo} · blinds {state.config.smallBlind}/{state.config.bigBlind} · target {pressure.targetChips} by hand {pressure.targetHand}</span>}
+          <div className={styles.tableMetaRow}>
+            {pressure && (
+              <span>
+                Hand {state.handNo} · blinds {state.config.smallBlind}/{state.config.bigBlind} · target {formatChips(pressure.targetChips)} by hand {pressure.targetHand}
+              </span>
+            )}
             {rankLabel && <span className={economy.rankMeta}>{rankLabel}</span>}
           </div>
         )}
 
-        <div className={styles.oppRow}>
-          {opponents.map((seat) => {
-            const isTurn = state.currentSeat === seat.seatIndex;
-            const isDealer = seat.seatIndex === state.button;
-            const move = actionCopy(seat.lastAction, {
-              sb: sbAmt, bb: bbAmt,
-              isSb: seat.seatIndex === state.sbSeat,
-              isBb: seat.seatIndex === state.bbSeat,
-            });
-            return (
-              <div key={seat.seatIndex} className={[styles.oppSeat, seat.folded ? styles.oppFolded : '', isTurn ? styles.oppTurn : ''].filter(Boolean).join(' ')}>
-                <div className={styles.oppActionSlot}>
-                  {move && <span className={[styles.actionPill, move.kind === 'fold' ? styles.actionFold : '', move.kind === 'passive' ? styles.actionPassive : '', move.kind === 'blind' ? styles.actionBlind : '', move.kind === 'aggressive' ? styles.actionAgg : ''].filter(Boolean).join(' ')}>{move.label}</span>}
+        <div className={styles.feltStage}>
+          <div className={styles.rail}>
+            <div className={styles.felt}>
+              {opponents.map((seat, i) => {
+                const isTurn = state.currentSeat === seat.seatIndex;
+                const isDealer = seat.seatIndex === state.button;
+                const move = actionCopy(seat.lastAction, {
+                  sb: sbAmt, bb: bbAmt,
+                  isSb: seat.seatIndex === state.sbSeat,
+                  isBb: seat.seatIndex === state.bbSeat,
+                });
+                const pos = opponentSeatStyle(i, opponents.length);
+                const reveal = showdown && seat.holeCards && !seat.folded;
+                return (
+                  <div
+                    key={seat.seatIndex}
+                    className={[styles.seat, seat.folded ? styles.seatFolded : '', isTurn ? styles.seatTurn : ''].filter(Boolean).join(' ')}
+                    style={pos}
+                  >
+                    <div className={styles.actionSlot}>
+                      {move && (
+                        <span className={[styles.actionPill, move.kind === 'fold' ? styles.actionFold : '', move.kind === 'passive' ? styles.actionPassive : '', move.kind === 'blind' ? styles.actionBlind : '', move.kind === 'aggressive' ? styles.actionAgg : ''].filter(Boolean).join(' ')}>
+                          {move.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.avatarWrap}>
+                      <span className={styles.oppEmoji} aria-hidden>{emojiForName(seat.name || '?')}</span>
+                      {isDealer && <span className={styles.dealerBadge}>D</span>}
+                    </div>
+                    <div className={styles.seatName}>{seat.name}</div>
+                    <div className={styles.seatStack}>{formatChips(seat.stack)}</div>
+                    {seat.bet > 0 && <div className={styles.betChip}>{formatChips(seat.bet)}</div>}
+                    <div className={styles.oppHole}>
+                      {reveal ? (
+                        <>
+                          <CardView mini key={cardKey(`opp-${seat.seatIndex}-0`, seat.holeCards![0])} card={seat.holeCards![0]} delay={0} />
+                          <CardView mini key={cardKey(`opp-${seat.seatIndex}-1`, seat.holeCards![1])} card={seat.holeCards![1]} delay={0.08} />
+                        </>
+                      ) : !seat.folded ? (
+                        <>
+                          <CardView mini faceDown />
+                          <CardView mini faceDown />
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className={styles.boardCenter}>
+                <div className={styles.potBadge}>POT<span>{formatChips(state.pot)}</span></div>
+                <div className={styles.board}>
+                  {[0, 1, 2, 3, 4].map((i) => {
+                    const card = state.community[i] ?? null;
+                    return <CardView key={cardKey(`board-${i}`, card)} card={card} slot delay={card ? i * 0.08 : 0} />;
+                  })}
                 </div>
-                <div className={styles.oppAvatarWrap}>
-                  <span className={styles.oppEmoji} aria-hidden>{emojiForName(seat.name || '?')}</span>
-                  {isDealer && <span className={styles.dealerBadge}>D</span>}
-                </div>
-                <div className={styles.oppName}>{seat.name}</div>
-                <div className={styles.oppStack}>{seat.stack}</div>
-                {showdown && seat.holeCards && !seat.folded && (
-                  <div className={styles.oppShowdown}>
-                    <CardView key={cardKey(`opp-${seat.seatIndex}-0`, seat.holeCards[0])} card={seat.holeCards[0]} delay={0} />
-                    <CardView key={cardKey(`opp-${seat.seatIndex}-1`, seat.holeCards[1])} card={seat.holeCards[1]} delay={0.08} />
+                {state.winners && state.winners.length > 0 && (
+                  <div className={styles.winnerBanner}>
+                    {state.winners.map((w, i) => (
+                      <span key={i}>
+                        {state.seats[w.seat]?.name} wins {formatChips(w.amount)}{w.handName ? ` · ${w.handName}` : ''}{i < state.winners!.length - 1 ? ' · ' : ''}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-
-        {actingBot && <div className={styles.actingHint}>{actingBot}</div>}
-
-        <div className={styles.stage}>
-          <div className={styles.boardRow}>
-            <div className={styles.board}>
-              {[0, 1, 2, 3, 4].map((i) => {
-                const card = state.community[i] ?? null;
-                return <CardView key={cardKey(`board-${i}`, card)} card={card} slot delay={card ? i * 0.08 : 0} />;
-              })}
             </div>
           </div>
-          {state.winners && state.winners.length > 0 && <div className={styles.winnerBanner}>{state.winners.map((w, i) => <span key={i}>{state.seats[w.seat]?.name} wins {w.amount}{w.handName ? ` · ${w.handName}` : ''}{i < state.winners!.length - 1 ? ' · ' : ''}</span>)}</div>}
         </div>
 
-        <div className={styles.hud}>
-          {isHeroTurn && <ActionBar legal={legal} pot={state.pot} bb={state.config.bigBlind} onAct={(t, a) => onAct(t as ActionType, a)} />}
-        </div>
+        {actingBot && <div className={styles.actingHint}>{actingBot} is thinking…</div>}
 
-        {hero && hero.playerId && (
-          <div className={`${styles.heroZone} ${fix.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
-            <div className={`${styles.heroCards} ${fix.heroCards}`}>
-              {hero.holeCards && !hero.folded ? (
+        <div className={`${styles.heroRail} ${hero?.folded ? styles.heroFolded : ''}`}>
+          {hero && hero.playerId && (
+            <div className={styles.heroCards}>
+              {hero.holeCards ? (
                 <>
                   <CardView key={cardKey('hero-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
                   <CardView key={cardKey('hero-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
                 </>
-              ) : hero.folded ? (
-                <div className={styles.foldedTag}>Folded</div>
-              ) : showdown && hero.holeCards ? (
-                <>
-                  <CardView key={cardKey('hero-show-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
-                  <CardView key={cardKey('hero-show-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
-                </>
               ) : null}
             </div>
+          )}
 
-            <div className={`${styles.heroTile} ${fix.heroTile}`}>
+          {hero && hero.playerId && (
+            <div className={styles.heroTile}>
               {(() => {
                 const move = actionCopy(hero.lastAction, {
                   sb: sbAmt, bb: bbAmt,
@@ -181,18 +199,24 @@ export function PokerTable({
                 });
                 return move ? <span className={[styles.actionPill, styles.heroActionPill, move.kind === 'fold' ? styles.actionFold : '', move.kind === 'passive' ? styles.actionPassive : '', move.kind === 'blind' ? styles.actionBlind : '', move.kind === 'aggressive' ? styles.actionAgg : ''].filter(Boolean).join(' ')}>{move.label}</span> : null;
               })()}
-              <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
+              <div className={styles.heroHandLabel}>{hero.folded ? 'Folded' : (handLabel || '—')}</div>
               {heroAvatarUrl ? (
                 <img className={economy.heroPfp} src={heroAvatarUrl} alt="" />
               ) : (
                 <div className={styles.heroEmoji}>{heroEmoji}</div>
               )}
-              <div className={fix.heroName}>{hero.name || 'You'}</div>
-              <motion.div className={styles.heroStackBig} key={hero.stack} initial={{ opacity: 0.6 }} animate={{ opacity: 1 }}>{hero.stack}</motion.div>
+              <div className={styles.heroName}>{hero.name || 'You'}</div>
+              <motion.div className={styles.heroStackBig} key={hero.stack} initial={{ opacity: 0.6 }} animate={{ opacity: 1 }}>
+                {formatChips(heroLeft)}
+              </motion.div>
               {hero.seatIndex === state.button && <span className={styles.heroDealer}>D</span>}
             </div>
+          )}
+
+          <div className={styles.hud}>
+            {isHeroTurn && <ActionBar legal={legal} pot={state.pot} bb={state.config.bigBlind} onAct={(t, a) => onAct(t as ActionType, a)} />}
           </div>
-        )}
+        </div>
 
         {coachLine && <div className={styles.coachTiny}>{coachLine}</div>}
       </div>

@@ -7,6 +7,7 @@ import {
 import { basicStrategy } from '../blackjack/strategy';
 import { CardView } from '../components/Table/CardView';
 import { getChipBank, setChipBank } from '../lib/guest';
+import { formatChips } from '../lib/format';
 import styles from './pages.module.css';
 import bj from './blackjack.module.css';
 
@@ -37,6 +38,13 @@ export function Blackjack() {
   const syncBank = (s: BJState) => {
     setChipBank(s.bank);
     setState(s);
+  };
+
+  const refillBank = () => {
+    const next = createBJ(1000);
+    setChipBank(next.bank);
+    setBetInput(100);
+    setState(next);
   };
 
   return (
@@ -98,7 +106,7 @@ export function Blackjack() {
       )}
 
       <div className={bj.bank}>
-        Bank: <strong>{state.bank}</strong> practice chips
+        Bank: <strong>{formatChips(state.bank)}</strong> practice chips
       </div>
 
       <div className={bj.actions}>
@@ -107,19 +115,28 @@ export function Blackjack() {
             <input
               type="number"
               min={10}
-              max={state.bank}
+              max={Math.max(10, state.bank)}
               step={10}
               value={betInput}
-              onChange={(e) => setBetInput(Number(e.target.value))}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (!Number.isFinite(n)) return;
+                setBetInput(Math.max(10, Math.floor(n)));
+              }}
               className={bj.betInput}
             />
             <button
               className={styles.primary}
               disabled={state.bank < 10}
-              onClick={() => syncBank(placeBet(state, betInput))}
+              onClick={() => syncBank(placeBet(state, Math.min(betInput, state.bank)))}
             >
               Deal
             </button>
+            {state.bank < 10 && (
+              <button type="button" className={styles.primary} onClick={refillBank}>
+                Refill 1,000
+              </button>
+            )}
             {[50, 100, 250, 500].map((n) => (
               <button key={n} type="button" className={styles.ghost} onClick={() => setBetInput(n)}>
                 {n}

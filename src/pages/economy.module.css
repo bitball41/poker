@@ -16,7 +16,7 @@
   height: 48px;
   flex: 0 0 48px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--border);
 }
 
 .identityAvatar {
@@ -26,8 +26,8 @@
 .identityAvatarFallback {
   display: grid;
   place-items: center;
-  background: #181818;
-  color: #fff;
+  background: #163526;
+  color: var(--gold);
   font-weight: 800;
   font-size: 1.05rem;
 }
@@ -40,17 +40,17 @@
 
 .identityStats span,
 .fixedStack {
-  border: 1px solid #171717;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: #080808;
-  color: rgba(255, 255, 255, 0.55);
+  background: rgba(7, 20, 14, 0.5);
+  color: var(--muted);
   font-size: 0.78rem;
   padding: 0.38rem 0.62rem;
 }
 
 .identityStats b,
 .fixedStack b {
-  color: #fff;
+  color: var(--gold);
 }
 
 .authTabs {
@@ -61,19 +61,19 @@
 
 .authTab {
   appearance: none;
-  border: 1px solid #171717;
+  border: 1px solid var(--border);
   border-radius: 9px;
-  background: #070707;
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(7, 20, 14, 0.45);
+  color: var(--muted);
   padding: 0.58rem 0.7rem;
   cursor: pointer;
   font-weight: 650;
 }
 
 .authTabActive {
-  background: #f2f2f2;
-  border-color: #f2f2f2;
-  color: #050505;
+  background: var(--gold);
+  border-color: #f0d78a;
+  color: #1a1206;
 }
 
 .authForm {
@@ -84,10 +84,10 @@
 
 .authError {
   margin: 0;
-  border: 1px solid rgba(255, 90, 90, 0.2);
+  border: 1px solid rgba(196, 92, 74, 0.35);
   border-radius: 8px;
-  background: rgba(255, 70, 70, 0.05);
-  color: rgba(255, 150, 150, 0.95);
+  background: rgba(196, 92, 74, 0.1);
+  color: #f0b4aa;
   padding: 0.55rem 0.65rem;
   font-size: 0.78rem;
   line-height: 1.35;
@@ -102,7 +102,7 @@
 
 .accountNote {
   margin: 0;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(244, 239, 228, 0.38);
   font-size: 0.72rem;
   line-height: 1.4;
 }
@@ -116,8 +116,8 @@
   gap: 0.9rem;
   align-items: stretch;
   text-align: center;
-  background: #090909;
-  border: 1px solid #181818;
+  background: #10241a;
+  border: 1px solid var(--border);
   border-radius: 16px;
 }
 
