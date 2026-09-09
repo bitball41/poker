@@ -8,6 +8,7 @@ function softReason(decision: BotDecision): string {
       .replace(/\s*\(equity[^)]*\)/gi, '')
       .replace(/Eq\s+[\d.]+%\s*<\s*price\s+[\d.]+%/gi, 'price looked steep')
       .replace(/Fold weak.*/i, 'folded')
+      .replace(/^ml policy\.?$/i, '')
       .trim();
     if (r.length > 0 && r.length < 80) return r;
   }

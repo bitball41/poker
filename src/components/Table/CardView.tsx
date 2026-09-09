@@ -51,7 +51,7 @@ export function CardView({ card, faceDown, large, mini, delay = 0, slot }: Props
           </span>
           {large && <span className={styles.cardPip}>{SUIT_SYMBOLS[card.suit]}</span>}
         </>
-      ) : back ? (
+      ) : back && !mini ? (
         <span className={styles.cardBackMark}>♠</span>
       ) : null}
     </motion.div>

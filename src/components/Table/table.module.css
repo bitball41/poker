@@ -322,10 +322,11 @@
 .cardLarge .cardSuit { font-size: 1.15em; }
 
 .heroRail {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1rem;
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1rem 1.25rem;
   width: 100%;
   max-width: 760px;
   margin: 0.15rem auto 0;
@@ -359,7 +360,6 @@
   padding: 0.55rem 0.4rem 0.5rem;
   flex-shrink: 0;
   gap: 0.15rem;
-  justify-self: end;
 }
 
 .heroActionPill {
@@ -424,7 +424,7 @@
   align-items: stretch;
   width: 100%;
   min-height: 2.5rem;
-  grid-column: 1 / -1;
+  flex: 1 0 100%;
 }
 
 .actionBar {
@@ -654,7 +654,6 @@
   }
   .actionRow { flex-wrap: wrap; }
   .heroRail {
-    grid-template-columns: 1fr auto;
     max-width: none;
   }
 }
