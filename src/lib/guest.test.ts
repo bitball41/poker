@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { getChipBank, setChipBank } from './guest';
 import { formatChips } from './format';
-import { opponentSeatStyle } from './seatLayout';
+import { sfxEnabled, setSfxEnabled, sfxForAction } from './sound';
 
 function mockStorage() {
   const store = new Map<string, string>();
@@ -23,17 +23,20 @@ describe('formatChips', () => {
   });
 });
 
-describe('opponentSeatStyle', () => {
-  it('keeps a solo opponent near the top of the oval', () => {
-    const pos = opponentSeatStyle(0, 1);
-    expect(Number.parseFloat(pos.left)).toBeCloseTo(50, 0);
-    expect(Number.parseFloat(pos.top)).toBeLessThan(20);
+describe('sfx prefs', () => {
+  beforeEach(() => {
+    mockStorage();
   });
 
-  it('spreads many opponents left to right', () => {
-    const a = opponentSeatStyle(0, 5);
-    const b = opponentSeatStyle(4, 5);
-    expect(Number.parseFloat(a.left)).toBeLessThan(Number.parseFloat(b.left));
+  it('defaults on and can mute', () => {
+    expect(sfxEnabled()).toBe(true);
+    setSfxEnabled(false);
+    expect(sfxEnabled()).toBe(false);
+  });
+
+  it('maps actions to short cues', () => {
+    expect(sfxForAction('fold')).toBe('fold');
+    expect(sfxForAction('raise')).toBe('raise');
   });
 });
 

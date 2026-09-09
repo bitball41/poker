@@ -1,25 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap');
 
 :root {
   color-scheme: dark;
-  --bg: #07140e;
-  --bg-elevated: #10241a;
-  --felt: #0d5c3a;
-  --felt-deep: #08422a;
-  --rail: #3d2414;
-  --gold: #e4c36a;
-  --gold-soft: rgba(228, 195, 106, 0.22);
-  --text: #f4efe4;
-  --muted: rgba(244, 239, 228, 0.52);
-  --border: rgba(228, 195, 106, 0.18);
-  --accent: #e4c36a;
-  --danger: #c45c4a;
-  --ok: #3ecf8e;
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  --bg: #000;
+  --bg-elevated: #1c1c1e;
+  --text: #f2f2f2;
+  --muted: rgba(255, 255, 255, 0.4);
+  --border: #141414;
+  --accent: #e8e8e8;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.45;
   font-weight: 400;
   color: var(--text);
-  background: var(--bg);
+  background: #000;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -30,15 +23,12 @@
 html, body, #root {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
+  background: #000;
 }
 
 body {
   min-width: 320px;
-  background:
-    radial-gradient(ellipse at 50% -10%, rgba(30, 110, 70, 0.35), transparent 55%),
-    radial-gradient(ellipse at 100% 100%, rgba(61, 36, 20, 0.4), transparent 45%),
-    var(--bg);
+  background: #000;
 }
 
 button, input, select {
@@ -48,11 +38,11 @@ button, input, select {
 a { color: inherit; }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid #f2f2f2;
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(228, 195, 106, 0.35);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }

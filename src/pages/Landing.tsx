@@ -9,6 +9,8 @@ import {
   signOutLiminalAccount,
 } from '../lib/liminalAccount';
 import { loadProgress, rankName } from '../economy/progress';
+import { SoundToggle } from '../components/SoundToggle';
+import { playSfx } from '../lib/sound';
 import styles from './pages.module.css';
 import economy from './economy.module.css';
 
@@ -77,6 +79,9 @@ export function Landing() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.heroTop}>
+        <SoundToggle className={styles.ghost} />
+      </div>
       <motion.header
         className={styles.hero}
         initial={{ opacity: 0, y: 12 }}
@@ -88,7 +93,7 @@ export function Landing() {
           <span className={styles.poker}>Poker</span>
         </h1>
         <p className={styles.tagline}>
-          No-Limit Hold&apos;em with persistent fake chips, ranked progress, smart bots, or friends. No real money.
+          Practice chips. Quiet table. No real money.
         </p>
       </motion.header>
 
@@ -98,12 +103,14 @@ export function Landing() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
       >
-        <div className={styles.playStack}>
-        <div className={`${styles.card} ${styles.cardFeatured}`}>
+        <div className={styles.card}>
           <h2>Hold&apos;em vs Bots</h2>
-          <p className={styles.muted}>
-            First balance is 400 fake chips. Busting unlocks a 200-chip refill. Blinds rise every few hands and your stack persists.
-          </p>
+          <p className={styles.muted}>400 fake chips to start. Bust, refill 200. Stack sticks around.</p>
+          {progress.chips <= 0 ? (
+            <div className={styles.cardEmpty}>Out of chips — sit down to refill.</div>
+          ) : (
+            <div className={economy.fixedStack}>Your stack: <b>{progress.chips}</b> chips</div>
+          )}
           <label className={styles.field}>
             Table size
             <select value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
@@ -112,12 +119,12 @@ export function Landing() {
               ))}
             </select>
           </label>
-          <div className={economy.fixedStack}>Your stack: <b>{progress.chips.toLocaleString('en-US')}</b> chips</div>
           <button
             className={styles.primary}
             disabled={identity.loading}
             onClick={() => {
               saveName();
+              playSfx('tap');
               nav(`/play?seats=${seats}`);
             }}
           >
@@ -127,7 +134,7 @@ export function Landing() {
 
         <div className={styles.card}>
           <h2>Private Lobby</h2>
-          <p className={styles.muted}>Invite-code friends mode with a waiting room and reconnect support.</p>
+          <p className={styles.muted}>Six-letter code. Waiting room. Reconnect if you drop.</p>
           <label className={styles.checkboxField}>
             <input type="checkbox" checked={fillBots} onChange={(e) => setFillBots(e.target.checked)} />
             Fill empty seats with bots when the host starts
@@ -137,6 +144,7 @@ export function Landing() {
             disabled={identity.loading}
             onClick={() => {
               saveName();
+              playSfx('tap');
               nav(`/lobby/${makeLobbyCode()}?host=1&seats=${seats}&buyIn=400&bots=${fillBots ? 1 : 0}`);
             }}
           >
@@ -151,27 +159,39 @@ export function Landing() {
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
+              aria-label="Lobby code"
             />
             <button
               className={styles.secondary}
               disabled={code.length !== 6 || identity.loading}
               onClick={() => {
                 saveName();
+                playSfx('tap');
                 nav(`/lobby/${code}`);
               }}
             >
               Join
             </button>
           </div>
+          {code.length === 0 ? (
+            <p className={styles.emptyHint}>Paste a 6-character code to join.</p>
+          ) : code.length < 6 ? (
+            <p className={styles.emptyHint}>{6 - code.length} more</p>
+          ) : null}
         </div>
 
         <div className={styles.card}>
           <h2>Blackjack</h2>
-          <p className={styles.muted}>Dealer bot + optional basic-strategy coach. Fake chips only. S17, 3:2 blackjack, dealer peeks.</p>
-          <button className={styles.secondary} onClick={() => nav('/blackjack')}>
+          <p className={styles.muted}>Hit, stand, double. Coach optional.</p>
+          <button
+            className={styles.secondary}
+            onClick={() => {
+              playSfx('tap');
+              nav('/blackjack');
+            }}
+          >
             Play Blackjack
           </button>
-        </div>
         </div>
 
         <div className={styles.card}>
@@ -192,7 +212,7 @@ export function Landing() {
                 </div>
               </div>
               <div className={economy.identityStats}>
-                <span><b>{progress.chips.toLocaleString('en-US')}</b> chips</span>
+                <span><b>{progress.chips}</b> chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
               <div className={economy.accountActions}>
@@ -284,6 +304,7 @@ export function Landing() {
                 Guest display name
                 <input
                   className={styles.textInput}
+                  placeholder="Name"
                   value={name}
                   maxLength={20}
                   onChange={(e) => setName(e.target.value)}
@@ -291,7 +312,7 @@ export function Landing() {
                 />
               </label>
               <div className={economy.identityStats}>
-                <span><b>{progress.chips.toLocaleString('en-US')}</b> guest chips</span>
+                <span><b>{progress.chips}</b> guest chips</span>
                 <span><b>{rankName(progress.rankPoints)}</b> · {progress.rankPoints}</span>
               </div>
             </>

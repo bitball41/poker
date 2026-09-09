@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useLobby } from '../hooks/useLobby';
 import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
 import { setGuestName } from '../lib/guest';
+import { SoundToggle } from '../components/SoundToggle';
 import { PokerTable } from '../components/Table/PokerTable';
 import styles from './pages.module.css';
 
@@ -67,6 +68,7 @@ export function Lobby() {
           <span className={styles.liminalSm}>Liminal</span> Poker
         </button>
         <div className={styles.topActions}>
+          <SoundToggle className={styles.ghost} />
           <button type="button" className={styles.codeBadgeButton} onClick={() => void copyCode()} title="Copy lobby code">
             {lobby.meta?.code ?? code}
           </button>
@@ -81,9 +83,20 @@ export function Lobby() {
       )}
 
       {identity.loading ? (
-        <div className={styles.empty}>Loading Liminal account…</div>
+        <div className={styles.empty}>
+          <div className={styles.emptyTitle}>One second</div>
+          <p className={styles.muted}>Loading your name.</p>
+        </div>
+      ) : !lobby.supabaseConfigured ? (
+        <div className={styles.empty}>
+          <div className={styles.emptyTitle}>Friends mode is empty</div>
+          <p className={styles.muted}>This build has no Supabase. Bot practice on the home screen still works.</p>
+        </div>
       ) : !lobby.meta ? (
-        <div className={styles.empty}>Connecting lobby…</div>
+        <div className={styles.empty}>
+          <div className={styles.emptyTitle}>Empty lobby</div>
+          <p className={styles.muted}>Connecting…</p>
+        </div>
       ) : lobby.meta.status === 'waiting' ? (
         <section className={styles.waitingRoom}>
           <div className={styles.waitingHeader}>
@@ -104,8 +117,8 @@ export function Lobby() {
               if (!seat) {
                 return (
                   <div key={seatIndex} className={`${styles.playerRow} ${styles.emptySeat}`}>
-                    <span>Seat {seatIndex + 1}</span>
-                    <span>{lobby.meta?.fillWithBots ? 'bot on start if empty' : 'open'}</span>
+                    <span>Empty seat {seatIndex + 1}</span>
+                    <span>{lobby.meta?.fillWithBots ? 'bot later' : 'open'}</span>
                   </div>
                 );
               }
@@ -149,7 +162,10 @@ export function Lobby() {
           </div>
         </section>
       ) : !lobby.state ? (
-        <div className={styles.empty}>Waiting for the authoritative table state…</div>
+        <div className={styles.empty}>
+          <div className={styles.emptyTitle}>Waiting on the table</div>
+          <p className={styles.muted}>No cards yet.</p>
+        </div>
       ) : (
         <>
           <PokerTable
