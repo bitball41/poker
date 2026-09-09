@@ -129,15 +129,15 @@ export function Landing() {
           </div>
           <div>
             <b>{rankName(progress.rankPoints)}</b>
-            <span>{progress.gamesPlayed === 0 ? 'no games yet' : `${progress.wins}–${progress.losses}`}</span>
+            <span>{progress.gamesPlayed === 0 ? `${progress.rankPoints} pts` : `${progress.wins}–${progress.losses}`}</span>
           </div>
         </div>
 
         {broke && (
           <div className={styles.homeEmpty}>Empty stack. Sit down and refill 200.</div>
         )}
-        {progress.gamesPlayed === 0 && !broke && (
-          <div className={styles.homeEmpty}>No wins yet. First sit is 400 chips.</div>
+        {!broke && progress.gamesPlayed === 0 && progress.chips === 400 && (
+          <div className={styles.homeEmpty}>No games yet. First sit is 400 chips.</div>
         )}
 
         <div className={styles.seatPills} role="group" aria-label="Table size">
