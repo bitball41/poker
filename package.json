@@ -12,6 +12,11 @@
     "test:bots": "node scripts/test-bots.mjs",
     "train:data": "node scripts/generate-training-data.mjs",
     "train:model": "python training/train.py",
+    "eval:model": "node scripts/eval-model.mjs",
+    "selfplay:data": "node scripts/selfplay-data.mjs",
+    "selfplay:train": "python training/train.py --mode rl --resume training/out/policy-v1.pt --data training/data/selfplay-ppo --out training/out/policy-ppo.json --lr 5e-5 --epochs 1 --entropy 0.02 --clip 0.15 --grad-clip 1.0",
+    "selfplay:eval": "node scripts/eval-model.mjs --model training/out/policy-ppo.json --vs-model training/out/policy-v1.json --skip-heuristic --games 500 --workers 4 --seed 1337 --out training/out/eval-ppo.json",
+    "selfplay:iterate": "node scripts/selfplay-ppo-iterate.mjs",
     "lint": "oxlint"
   },
   "dependencies": {

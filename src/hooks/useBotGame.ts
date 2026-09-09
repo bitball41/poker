@@ -5,7 +5,7 @@ import {
 } from '../engine/game';
 import { createRng } from '../engine/rng';
 import {
-  decideTournamentAction, legalizeBotDecision, thinkDelay, delay, explainDecision, rollBotSeats,
+  decideAction, thinkDelay, delay, explainDecision, rollBotSeats,
 } from '../bots';
 import {
   clearLocalGame,
@@ -175,8 +175,7 @@ export function useBotGame(opts: BotGameOptions) {
         const legal = getLegalActions(s);
         if (!legal.length) break;
         setActingBot(seat.name);
-        const proposed = decideTournamentAction(s, seat.seatIndex, persona, legal);
-        const decision = legalizeBotDecision(proposed, legal, seat.stack);
+        const decision = decideAction(s, seat.seatIndex, persona, legal);
         await delay(thinkDelay(persona, decision));
         s = applyAction(s, decision.type, decision.amount);
         sync(s);

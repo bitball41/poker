@@ -1,7 +1,9 @@
 import { evaluateHand, compareHands, CATEGORY_RANK } from '../src/bots/handStrength';
 import { parseCard } from '../src/engine/cards';
-import { createGame, sitPlayer, startHand, applyAction, getLegalActions } from '../src/engine/game';
+import { createGame, sitPlayer, startHand, getLegalActions } from '../src/engine/game';
 import { decideAction } from '../src/bots/decision';
+import { decideTournamentAction } from '../src/bots/tournamentPolicy';
+import { legalizeBotDecision } from '../src/bots/legalize';
 import { potOdds } from '../src/bots/potOdds';
 import { estimateEquity } from '../src/bots/equity';
 
@@ -48,52 +50,68 @@ assert(eq72.equity < 0.4, `72o equity ${eq72.equity}`);
 assert(eqAA.equity > eq72.equity, 'AA > 72o');
 console.log(`OK equity AA=${(eqAA.equity * 100).toFixed(1)}% 72o=${(eq72.equity * 100).toFixed(1)}%`);
 
-console.log('— Decision cases —');
+console.log('— Heuristic persona cases —');
 let g = createGame({ smallBlind: 50, bigBlind: 100, maxSeats: 2, seed: 1 });
 g = sitPlayer(g, 0, { playerId: 'h', name: 'Hero', stack: 10000 });
 g = sitPlayer(g, 1, { playerId: 'b', name: 'Rook', stack: 10000, isBot: true, botPersona: 'rook' });
 g = startHand(g, 99);
 
-// Force premium for rook if it's their turn — instead unit-test decideAction with crafted state
 const seat = g.currentSeat!;
 const actor = g.seats[seat];
-// Give AA to actor
+const stack = actor.stack;
 actor.holeCards = c('As', 'Ad');
 const legal = getLegalActions(g);
-const nit = decideAction(g, seat, 'rook', legal);
+const legalize = (persona: string) => {
+  const proposed = decideTournamentAction(g, seat, persona, legal);
+  return legalizeBotDecision(proposed, legal, stack);
+};
+const nit = legalize('rook');
 assert(nit.type === 'raise' || nit.type === 'bet' || nit.type === 'all-in' || nit.type === 'call', `nit with AA should not fold: ${nit.type} ${nit.reason}`);
 console.log(`OK Rook with AA → ${nit.type} (${nit.reason})`);
 
 actor.holeCards = c('7h', '2c');
-const nitTrash = decideAction(g, seat, 'rook', legal);
-// Facing blinds only / open — nit may fold or check depending on position
+const nitTrash = legalize('rook');
 assert(nitTrash.type !== 'all-in' || nitTrash.confidence < 0.5, 'nit should not happily shove 72o');
 console.log(`OK Rook with 72o → ${nitTrash.type} (${nitTrash.reason})`);
 
-// Harbor calls thinner than Rook
-const harbor = decideAction(g, seat, 'harbor', legal);
+const harbor = legalize('harbor');
 console.log(`OK Harbor with 72o → ${harbor.type} (${harbor.reason})`);
 
-// Don't fold nuts on river
 g.street = 'river';
 g.community = c('9h', '9d', '9c', '2s', '3d');
-actor.holeCards = c('9s', 'Ah'); // quads
+actor.holeCards = c('9s', 'Ah');
 actor.bet = 0;
 g.currentBet = 500;
 actor.hasActed = false;
 g.pot = 2000;
-// rebuild legal with facing bet — need stack etc.
 const g2 = JSON.parse(JSON.stringify(g));
 g2.seats[seat].bet = 0;
 g2.seats[seat].stack = 5000;
 g2.currentBet = 500;
 const legal2 = getLegalActions(g2);
 if (legal2.some((a) => a.type === 'fold')) {
-  const d = decideAction(g2, seat, 'mira', legal2);
+  const d = legalizeBotDecision(decideTournamentAction(g2, seat, 'mira', legal2), legal2, g2.seats[seat].stack);
   assert(d.type !== 'fold', `must not fold quads: ${d.type} ${d.reason}`);
   console.log(`OK Mira with quads facing bet → ${d.type}`);
 } else {
   console.log('skip nuts fold test (no fold legal)');
 }
+
+console.log('— Shipped ML policy-v1 —');
+let mlGame = createGame({ smallBlind: 50, bigBlind: 100, maxSeats: 2, seed: 1 });
+mlGame = sitPlayer(mlGame, 0, { playerId: 'h', name: 'Hero', stack: 10000 });
+mlGame = sitPlayer(mlGame, 1, { playerId: 'b', name: 'Rook', stack: 10000, isBot: true, botPersona: 'rook' });
+mlGame = startHand(mlGame, 99);
+const mlSeat = mlGame.currentSeat!;
+mlGame.seats[mlSeat]!.holeCards = c('As', 'Ad');
+const mlLegal = getLegalActions(mlGame);
+const mlAa = decideAction(mlGame, mlSeat, 'rook', mlLegal);
+assert(mlLegal.some((a) => a.type === mlAa.type), `ML action not legal: ${mlAa.type}`);
+assert(mlAa.type !== 'fold', `ML with AA should not fold: ${mlAa.type} ${mlAa.reason}`);
+console.log(`OK ML AA → ${mlAa.type} (${mlAa.reason})`);
+mlGame.seats[mlSeat]!.holeCards = c('7h', '2c');
+const mlTrash = decideAction(mlGame, mlSeat, 'rook', mlLegal);
+assert(mlLegal.some((a) => a.type === mlTrash.type), `ML 72o not legal: ${mlTrash.type}`);
+console.log(`OK ML 72o → ${mlTrash.type} (${mlTrash.reason})`);
 
 console.log('\nAll bot tests passed.');
