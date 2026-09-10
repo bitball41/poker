@@ -135,20 +135,52 @@ export function validateLiminalUsername(username: string): string | null {
 }
 
 async function fetchProfile(username: string): Promise<any | null> {
-  const { data, error } = await liminalClient
+  const exact = await liminalClient
     .from('profiles')
     .select('username,display_name,pfp,color,ring,is_banned,password_hash')
     .eq('username', username)
     .maybeSingle();
+  if (exact.error) throw exact.error;
+  if (exact.data) return exact.data;
+
+  // Liminal usernames are treated as case-insensitive everywhere else.
+  const fallback = await liminalClient
+    .from('profiles')
+    .select('username,display_name,pfp,color,ring,is_banned,password_hash')
+    .ilike('username', username)
+    .maybeSingle();
+  if (fallback.error) throw fallback.error;
+  return fallback.data;
+}
+
+async function registrationsEnabled(): Promise<boolean> {
+  const { data, error } = await liminalClient
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'registrations_enabled')
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return data?.value !== 'false';
+}
+
+function accountRequestError(error: unknown, fallback: string): Error {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String((error as { code?: unknown }).code || '')
+    : '';
+  if (code === '23505') return new Error('That username is already taken.');
+  return new Error(fallback);
 }
 
 export async function loginLiminalAccount(username: string, password: string): Promise<LiminalAccountProfile> {
   const cleanUsername = username.trim();
   if (!cleanUsername || !password) throw new Error('Enter your username and password.');
 
-  const row = await fetchProfile(cleanUsername);
+  let row: any | null;
+  try {
+    row = await fetchProfile(cleanUsername);
+  } catch (error) {
+    throw accountRequestError(error, 'Could not reach Liminal accounts. Try again.');
+  }
   if (!row) throw new Error('Account not found.');
   if (row.is_banned) throw new Error('This Liminal account is unavailable.');
 
@@ -173,7 +205,16 @@ export async function signupLiminalAccount(
   }
   if (password.length < 6) throw new Error('Password must be at least 6 characters.');
 
-  const taken = await fetchProfile(cleanUsername);
+  let taken: any | null;
+  try {
+    if (!(await registrationsEnabled())) {
+      throw new Error('New account registration is currently disabled.');
+    }
+    taken = await fetchProfile(cleanUsername);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'New account registration is currently disabled.') throw error;
+    throw accountRequestError(error, 'Could not reach Liminal accounts. Try again.');
+  }
   if (taken) throw new Error('That username is already taken.');
 
   const passwordHash = await sha256Hex(password);
@@ -186,7 +227,7 @@ export async function signupLiminalAccount(
     })
     .select('username,display_name,pfp,color,ring,is_banned,password_hash')
     .single();
-  if (error) throw error;
+  if (error) throw accountRequestError(error, 'Could not create the account. Try again.');
   if (!data) throw new Error('Liminal account creation failed.');
 
   saveLiminalSession(data.username, passwordHash);
@@ -210,6 +251,7 @@ export async function loadLiminalAccount(): Promise<LiminalAccountProfile | null
   try {
     const row = await fetchProfile(session.username);
     if (!row || row.is_banned || row.password_hash !== session.passwordHash) {
+      signOutLiminalAccount();
       return requestParentIdentity();
     }
     return toSafeProfile(row);
