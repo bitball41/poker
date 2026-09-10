@@ -43,6 +43,18 @@
   min-height: 64px;
 }
 
+.emptyCards {
+  min-height: 66px;
+  min-width: 160px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.8rem;
+  border: 1px dashed #1d1d1d;
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+}
+
 .message {
   text-align: center;
   color: #f2f2f2;

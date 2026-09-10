@@ -37,6 +37,11 @@ button, input, select {
 
 a { color: inherit; }
 
+:focus-visible {
+  outline: 2px solid #f2f2f2;
+  outline-offset: 2px;
+}
+
 ::selection {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;

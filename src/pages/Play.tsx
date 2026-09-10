@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useBotGame } from '../hooks/useBotGame';
 import { useLiminalIdentity } from '../hooks/useLiminalIdentity';
 import { PokerTable } from '../components/Table/PokerTable';
+import { SoundToggle } from '../components/SoundToggle';
+import { playSfx } from '../lib/sound';
 import styles from './pages.module.css';
 import economy from './economy.module.css';
 
@@ -51,25 +53,39 @@ export function Play() {
         <Link to="/" className={styles.backChevron} aria-label="Back">
           ‹
         </Link>
-        <button
-          type="button"
-          className={styles.restartTiny}
-          disabled={!state || state.street !== 'complete' || progress.chips <= 0}
-          onClick={() => {
-            if (window.confirm('Start a fresh table with your current persistent chip balance?')) restart();
-          }}
-        >
-          New table
-        </button>
+        <div className={styles.topActions}>
+          <SoundToggle className={styles.restartTiny} />
+          <button
+            type="button"
+            className={styles.restartTiny}
+            disabled={!state || state.street !== 'complete' || progress.chips <= 0}
+            onClick={() => {
+              if (window.confirm('Start a fresh table with your current persistent chip balance?')) restart();
+            }}
+          >
+            New table
+          </button>
+        </div>
       </nav>
 
       {identity.loading ? (
-        <div className={styles.empty}>Loading Liminal account…</div>
+        <div className={styles.empty}>
+          <div className={styles.emptyTitle}>One second</div>
+          <p className={styles.muted}>Loading your table.</p>
+        </div>
       ) : !state ? (
         <div className={economy.bankruptCard}>
-          <div className={economy.bankruptTitle}>You&apos;re out of chips.</div>
-          <div className={styles.muted}>Your original balance was 400. Refills are 200 fake chips.</div>
-          <button type="button" className={styles.primary} disabled={!canRefill} onClick={refill}>
+          <div className={economy.bankruptTitle}>Empty stack</div>
+          <div className={styles.muted}>Started at 400. Refills are 200 fake chips.</div>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={!canRefill}
+            onClick={() => {
+              playSfx('tap');
+              refill();
+            }}
+          >
             Refill 200
           </button>
         </div>
@@ -87,14 +103,29 @@ export function Play() {
           />
           {state.street === 'complete' && heroAlive && playersAlive >= 2 && (
             <div className={styles.afterHandActions}>
-              <button type="button" className={styles.primary} onClick={nextHand}>
+              <button
+                type="button"
+                className={styles.primary}
+                onClick={() => {
+                  playSfx('deal');
+                  nextHand();
+                }}
+              >
                 Next hand
               </button>
             </div>
           )}
           {state.street === 'complete' && !heroAlive && (
             <div className={styles.afterHandActions}>
-              <button type="button" className={styles.primary} disabled={!canRefill} onClick={refill}>
+              <button
+                type="button"
+                className={styles.primary}
+                disabled={!canRefill}
+                onClick={() => {
+                  playSfx('tap');
+                  refill();
+                }}
+              >
                 Refill 200
               </button>
             </div>

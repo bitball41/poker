@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -6,7 +6,9 @@ import {
 } from '../blackjack';
 import { basicStrategy } from '../blackjack/strategy';
 import { CardView } from '../components/Table/CardView';
+import { SoundToggle } from '../components/SoundToggle';
 import { getChipBank, setChipBank } from '../lib/guest';
+import { playSfx } from '../lib/sound';
 import styles from './pages.module.css';
 import bj from './blackjack.module.css';
 
@@ -34,9 +36,28 @@ export function Blackjack() {
     );
   }, [state, coachOn]);
 
+  const celebrated = useRef<string | null>(null);
+
   const syncBank = (s: BJState) => {
     setChipBank(s.bank);
     setState(s);
+  };
+
+  useEffect(() => {
+    if (state.phase !== 'settle' || !state.lastResult) return;
+    const key = `${state.seed}-${state.lastResult}-${state.bank}`;
+    if (celebrated.current === key) return;
+    celebrated.current = key;
+    if (state.lastResult === 'win' || state.lastResult === 'blackjack') playSfx('win');
+    else if (state.lastResult === 'lose') playSfx(state.player.busted ? 'bust' : 'lose');
+  }, [state]);
+
+  const refillBank = () => {
+    const next = createBJ(1000);
+    setChipBank(next.bank);
+    setBetInput(100);
+    setState(next);
+    playSfx('tap');
   };
 
   return (
@@ -46,6 +67,7 @@ export function Blackjack() {
           <span className={styles.liminalSm}>Liminal</span> Poker
         </Link>
         <div className={styles.topActions}>
+          <SoundToggle className={styles.ghost} />
           <label className={bj.coachToggle}>
             <input type="checkbox" checked={coachOn} onChange={(e) => setCoachOn(e.target.checked)} />
             Strategy coach
@@ -65,14 +87,18 @@ export function Blackjack() {
             Dealer {dealerTotal ? `· ${dealerTotal.total}${dealerTotal.soft ? ' soft' : ''}` : ''}
           </div>
           <div className={bj.cards}>
-            {state.dealer.map((c, i) => (
-              <CardView
-                key={`d-${i}-${c.rank}${c.suit}`}
-                card={c}
-                faceDown={i === 1 && state.phase === 'player'}
-                delay={i * 0.06}
-              />
-            ))}
+            {state.dealer.length === 0 ? (
+              <div className={bj.emptyCards}>No cards</div>
+            ) : (
+              state.dealer.map((c, i) => (
+                <CardView
+                  key={`d-${i}-${c.rank}${c.suit}`}
+                  card={c}
+                  faceDown={i === 1 && state.phase === 'player'}
+                  delay={i * 0.06}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -84,9 +110,13 @@ export function Blackjack() {
             {state.player.bet > 0 ? ` · bet ${state.player.bet}` : ''}
           </div>
           <div className={bj.cards}>
-            {state.player.cards.map((c, i) => (
-              <CardView key={`p-${i}-${c.rank}${c.suit}`} card={c} large delay={i * 0.06} />
-            ))}
+            {state.player.cards.length === 0 ? (
+              <div className={bj.emptyCards}>Bet to deal</div>
+            ) : (
+              state.player.cards.map((c, i) => (
+                <CardView key={`p-${i}-${c.rank}${c.suit}`} card={c} large delay={i * 0.06} />
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -94,6 +124,15 @@ export function Blackjack() {
       {hint && (
         <div className={bj.hint} title="Basic strategy suggestion">
           Coach: <strong>{hint.action}</strong> — {hint.reason}
+        </div>
+      )}
+
+      {state.phase === 'settle' && state.lastResult && (
+        <div className={`${styles.resultFlash} ${state.lastResult === 'lose' ? styles.resultFlashLose : ''}`}>
+          <div className={styles.resultTitle}>
+            {state.lastResult === 'blackjack' ? 'Blackjack' : state.lastResult === 'win' ? 'You won' : state.lastResult === 'push' ? 'Push' : 'You lost'}
+          </div>
+          <div className={styles.resultSub}>{state.message}</div>
         </div>
       )}
 
@@ -107,19 +146,31 @@ export function Blackjack() {
             <input
               type="number"
               min={10}
-              max={state.bank}
+              max={Math.max(10, state.bank)}
               step={10}
               value={betInput}
-              onChange={(e) => setBetInput(Number(e.target.value))}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (!Number.isFinite(n)) return;
+                setBetInput(Math.max(10, Math.floor(n)));
+              }}
               className={bj.betInput}
             />
             <button
               className={styles.primary}
               disabled={state.bank < 10}
-              onClick={() => syncBank(placeBet(state, betInput))}
+              onClick={() => {
+                playSfx('deal');
+                syncBank(placeBet(state, Math.min(betInput, state.bank)));
+              }}
             >
               Deal
             </button>
+            {state.bank < 10 && (
+              <button type="button" className={styles.primary} onClick={refillBank}>
+                Refill 1,000
+              </button>
+            )}
             {[50, 100, 250, 500].map((n) => (
               <button key={n} type="button" className={styles.ghost} onClick={() => setBetInput(n)}>
                 {n}
@@ -129,12 +180,12 @@ export function Blackjack() {
         )}
         {state.phase === 'player' && (
           <>
-            <button className={styles.primary} onClick={() => syncBank(hit(state))}>Hit</button>
-            <button className={styles.secondary} onClick={() => syncBank(stand(state))}>Stand</button>
+            <button className={styles.primary} onClick={() => { playSfx('tap'); syncBank(hit(state)); }}>Hit</button>
+            <button className={styles.secondary} onClick={() => { playSfx('check'); syncBank(stand(state)); }}>Stand</button>
             <button
               className={styles.secondary}
               disabled={state.player.cards.length !== 2 || state.bank < state.player.bet}
-              onClick={() => syncBank(doubleDown(state))}
+              onClick={() => { playSfx('raise'); syncBank(doubleDown(state)); }}
               title="Double your bet and take exactly one card"
             >
               Double
@@ -142,7 +193,7 @@ export function Blackjack() {
           </>
         )}
         {state.phase === 'settle' && (
-          <button className={styles.primary} onClick={() => setState(nextRound(state))}>
+          <button className={styles.primary} onClick={() => { playSfx('deal'); setState(nextRound(state)); }}>
             Next hand
           </button>
         )}

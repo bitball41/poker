@@ -203,6 +203,38 @@
   line-height: 1.4;
 }
 
+.boardEmpty {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.28);
+  text-align: center;
+}
+
+.resultFlash {
+  text-align: center;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #fff;
+  color: #050505;
+  max-width: 340px;
+}
+
+.resultFlashLose {
+  background: #111;
+  color: #f2f2f2;
+  border: 1px solid #1f1f1f;
+}
+
+.resultTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.resultSub {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  opacity: 0.55;
+}
+
 /* —— Cards —— */
 .card {
   width: 48px;
@@ -280,7 +312,7 @@
 }
 
 .heroFolded {
-  opacity: 0.45;
+  opacity: 0.72;
 }
 
 .heroCards {

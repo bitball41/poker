@@ -140,7 +140,7 @@ export function HandLog({ state }: { state: GameState }) {
       <div className={styles.handLogTitle}>Hand log</div>
       <div className={styles.handLogList}>
         {display.length === 0 ? (
-          <div className={styles.handLogEmpty}>Waiting for action…</div>
+          <div className={styles.handLogEmpty}>Nothing yet</div>
         ) : (
           display.map((r) =>
             r.kind === 'street' ? (

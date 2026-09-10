@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState, ActionType, Card } from '../../types/poker';
 import type { BlindPressure } from '../../economy/blinds';
@@ -6,6 +7,7 @@ import { ActionBar } from './ActionBar';
 import { HandLog } from './HandLog';
 import { getLegalActions } from '../../engine/game';
 import { evaluateHand, CATEGORY_NAMES } from '../../bots/handStrength';
+import { playSfx, sfxForAction } from '../../lib/sound';
 import styles from './table.module.css';
 import fix from './tableFixes.module.css';
 import economy from './tableEconomy.module.css';
@@ -88,6 +90,29 @@ export function PokerTable({
   const bbAmt = state.config.bigBlind;
   const heroIn = hero?.totalBet ?? 0;
   const heroLeft = hero?.stack ?? 0;
+  const celebrated = useRef<number>(-1);
+  const lastBoard = useRef(state.community.length);
+
+  const heroWin = (state.winners ?? []).filter((w) => w.seat === heroSeat);
+  const heroWinAmount = heroWin.reduce((sum, w) => sum + w.amount, 0);
+  const handOver = state.street === 'complete' && Boolean(state.winners?.length);
+
+  useEffect(() => {
+    if (state.community.length > lastBoard.current) playSfx('deal');
+    lastBoard.current = state.community.length;
+  }, [state.community.length]);
+
+  useEffect(() => {
+    if (!handOver || celebrated.current === state.handNo) return;
+    celebrated.current = state.handNo;
+    if (heroWinAmount > 0) playSfx('win');
+    else playSfx(hero?.folded ? 'fold' : 'lose');
+  }, [handOver, state.handNo, heroWinAmount, hero?.folded]);
+
+  const act = (type: ActionType, amount?: number) => {
+    playSfx(sfxForAction(type));
+    onAct(type, amount);
+  };
 
   return (
     <div className={styles.playShell}>
@@ -136,7 +161,11 @@ export function PokerTable({
           })}
         </div>
 
-        {actingBot && <div className={styles.actingHint}>{actingBot}</div>}
+        {actingBot ? (
+          <div className={styles.actingHint}>{actingBot}</div>
+        ) : !isHeroTurn && state.street !== 'complete' ? (
+          <div className={styles.actingHint}>Waiting…</div>
+        ) : null}
 
         <div className={styles.stage}>
           <div className={styles.boardRow}>
@@ -147,29 +176,40 @@ export function PokerTable({
               })}
             </div>
           </div>
-          {state.winners && state.winners.length > 0 && <div className={styles.winnerBanner}>{state.winners.map((w, i) => <span key={i}>{state.seats[w.seat]?.name} wins {w.amount}{w.handName ? ` · ${w.handName}` : ''}{i < state.winners!.length - 1 ? ' · ' : ''}</span>)}</div>}
+          {state.community.length === 0 && state.street !== 'complete' && (
+            <div className={styles.boardEmpty}>Board is empty</div>
+          )}
+          {handOver && heroWinAmount > 0 && (
+            <motion.div className={styles.resultFlash} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <div className={styles.resultTitle}>You won {heroWinAmount}</div>
+              <div className={styles.resultSub}>{heroWin.map((w) => w.handName).filter(Boolean).join(' · ') || 'Pot'}</div>
+            </motion.div>
+          )}
+          {handOver && heroWinAmount <= 0 && (
+            <motion.div className={`${styles.resultFlash} ${styles.resultFlashLose}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <div className={styles.resultTitle}>{hero?.folded ? 'Folded' : 'Lost the pot'}</div>
+              <div className={styles.resultSub}>
+                {state.winners?.map((w) => `${state.seats[w.seat]?.name} · ${w.amount}`).join(' · ')}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         <div className={styles.hud}>
-          {isHeroTurn && <ActionBar legal={legal} pot={state.pot} bb={state.config.bigBlind} onAct={(t, a) => onAct(t as ActionType, a)} />}
+          {isHeroTurn && <ActionBar legal={legal} pot={state.pot} bb={state.config.bigBlind} onAct={(t, a) => act(t as ActionType, a)} />}
         </div>
 
         {hero && hero.playerId && (
           <div className={`${styles.heroZone} ${fix.heroZone} ${hero.folded ? styles.heroFolded : ''}`}>
             <div className={`${styles.heroCards} ${fix.heroCards}`}>
-              {hero.holeCards && !hero.folded ? (
+              {hero.holeCards ? (
                 <>
                   <CardView key={cardKey('hero-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
                   <CardView key={cardKey('hero-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
                 </>
-              ) : hero.folded ? (
-                <div className={styles.foldedTag}>Folded</div>
-              ) : showdown && hero.holeCards ? (
-                <>
-                  <CardView key={cardKey('hero-show-0', hero.holeCards[0])} card={hero.holeCards[0]} large delay={0} />
-                  <CardView key={cardKey('hero-show-1', hero.holeCards[1])} card={hero.holeCards[1]} large delay={0.1} />
-                </>
-              ) : null}
+              ) : (
+                <div className={styles.foldedTag}>No cards yet</div>
+              )}
             </div>
 
             <div className={`${styles.heroTile} ${fix.heroTile}`}>
@@ -181,7 +221,7 @@ export function PokerTable({
                 });
                 return move ? <span className={[styles.actionPill, styles.heroActionPill, move.kind === 'fold' ? styles.actionFold : '', move.kind === 'passive' ? styles.actionPassive : '', move.kind === 'blind' ? styles.actionBlind : '', move.kind === 'aggressive' ? styles.actionAgg : ''].filter(Boolean).join(' ')}>{move.label}</span> : null;
               })()}
-              <div className={styles.heroHandLabel}>{handLabel || '—'}</div>
+              <div className={styles.heroHandLabel}>{hero.folded ? 'Folded' : (handLabel || '—')}</div>
               {heroAvatarUrl ? (
                 <img className={economy.heroPfp} src={heroAvatarUrl} alt="" />
               ) : (

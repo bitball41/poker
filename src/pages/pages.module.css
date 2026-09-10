@@ -6,6 +6,209 @@
   background: #000;
 }
 
+/* —— Home (desktop split) —— */
+.home {
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.75rem 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+.homeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.homeBrand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.homeBrandSub {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.homeBarRight {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.homeWho {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.homeAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1c1c1e;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  object-fit: cover;
+  flex: 0 0 40px;
+}
+
+.homeWhoText { min-width: 0; }
+.homeName {
+  font-weight: 650;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.homeMeta {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.homeGhost {
+  appearance: none;
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+}
+
+.homeShell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.85fr);
+  gap: 4rem;
+  align-items: start;
+  padding: 3.5rem 0 2rem;
+}
+
+.homeMain {
+  padding-top: 1.25rem;
+}
+
+.homeMark {
+  font-family: 'Pacifico', cursive;
+  font-size: clamp(3.4rem, 6vw, 5.4rem);
+  line-height: 1.05;
+  margin: 0 0 0.65rem;
+}
+
+.homeLead {
+  margin: 0 0 2rem;
+  max-width: 26rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.05rem;
+}
+
+.homeStats {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.homeStats b {
+  display: block;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.homeStats span {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.85rem;
+}
+
+.homeEmpty {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.95rem;
+  margin: 0 0 1.35rem;
+}
+
+.homePlayRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  max-width: 420px;
+}
+
+.homePlayRow .field {
+  width: 140px;
+}
+
+.homePlay {
+  appearance: none;
+  border: none;
+  background: #fff;
+  color: #050505;
+  font-size: 1.05rem;
+  font-weight: 750;
+  padding: 0.95rem 1.6rem;
+  border-radius: 12px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.homePlay:disabled { opacity: 0.35; cursor: not-allowed; }
+.homePlay:hover:not(:disabled) { filter: brightness(0.94); }
+
+.homeSide {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 0.4rem;
+}
+
+.homePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding-bottom: 1.35rem;
+  border-bottom: 1px solid #161616;
+}
+
+.homePanel:last-child { border-bottom: none; padding-bottom: 0; }
+
+.homePanel h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #fff;
+}
+
+.homeFine {
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .home { padding: 1.1rem 1.15rem 1.5rem; }
+  .homeShell {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding-top: 1.5rem;
+  }
+  .homeBar { flex-wrap: wrap; }
+  .homePlayRow { max-width: none; }
+}
+
 .hero {
   text-align: center;
   padding: 2.5rem 0 1.5rem;
@@ -185,6 +388,26 @@
   padding: 4rem 1rem;
 }
 
+.emptyTitle {
+  margin: 0 0 0.45rem;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 650;
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.4;
+}
+
+.heroTop {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 2rem;
+}
+
 .banner {
   background: #0a0a0a;
   border: 1px solid #141414;
@@ -354,6 +577,44 @@
 }
 
 .restartTiny:hover { color: rgba(255, 255, 255, 0.55); }
+
+.resultFlash {
+  text-align: center;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: #fff;
+  color: #050505;
+  margin: 0.35rem auto 0;
+  max-width: 360px;
+}
+
+.resultFlashLose {
+  background: #111;
+  color: #f2f2f2;
+  border: 1px solid #1f1f1f;
+}
+
+.resultTitle {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.resultSub {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  opacity: 0.55;
+}
+
+.cardEmpty {
+  min-height: 3.2rem;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.82rem;
+  border: 1px dashed #1d1d1d;
+  border-radius: 10px;
+}
 
 @media (max-width: 620px) {
   .topNav, .waitingHeader { align-items: flex-start; }

@@ -73,7 +73,7 @@ function draw(state: BJState): Card {
 export function placeBet(state: BJState, bet: number): BJState {
   if (state.phase !== 'betting') return state;
   const amount = Math.max(10, Math.min(state.bank, Math.floor(bet)));
-  if (amount > state.bank || amount <= 0) {
+  if (!Number.isFinite(amount) || amount > state.bank || amount <= 0) {
     return { ...state, message: 'Invalid bet.' };
   }
   const next: BJState = {
@@ -90,6 +90,14 @@ export function placeBet(state: BJState, bet: number): BJState {
 
   if (isBlackjack(next.player.cards)) {
     return settlePlayerBJ(next);
+  }
+  if (isBlackjack(next.dealer)) {
+    return {
+      ...next,
+      phase: 'settle',
+      lastResult: 'lose',
+      message: 'Dealer blackjack.',
+    };
   }
   return {
     ...next,
